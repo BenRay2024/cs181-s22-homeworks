@@ -7,21 +7,81 @@ import matplotlib.pyplot as plt
 # Loading datasets for K-Means and HAC
 small_dataset = np.load("data/small_dataset.npy")
 large_dataset = np.load("data/large_dataset.npy")
+data = np.load("P2_Autograder_Data.npy")
+
+# Set random seed
+np.random.seed(2)
 
 # NOTE: You may need to add more helper functions to these classes
 class KMeans(object):
     # K is the K in KMeans
     def __init__(self, K):
         self.K = K
+        self.losses = []
+        self.iter_count = 0
 
     # X is a (N x 28 x 28) array where 28x28 is the dimensions of each of the N images.
     def fit(self, X):
-        pass
+        self.num_images, self.dim_images = X.shape # 5000, 784
+
+        # Intialize responsibility vectors
+        initial_responsibilities = []
+        for _ in range(self.num_images):
+            r_vec = np.zeros(self.K)
+            rand_index = np.random.randint(self.K)
+            r_vec[rand_index] = 1
+            initial_responsibilities.append(r_vec)
+        initial_responsibility_matrix = np.array(initial_responsibilities) # 5000xK: r_vecs are rows
+        
+        r_changing = True
+        while r_changing:
+            # Compute cluster means
+            cluster_means = []
+            for k in range(self.K):
+                # Number of images in class k
+                num_images_k = np.sum(initial_responsibility_matrix[:,k])
+                
+                # Compute individual cluster mean
+                cluster_mean = np.zeros(self.dim_images)
+                for n in range(self.num_images):
+                    cluster_mean += (1 / num_images_k) * initial_responsibility_matrix[n][k] * X[n]
+                cluster_means.append(cluster_mean)
+            
+            self.cluster_means_matrix = np.array(cluster_means) # Kx784: mean_vecs are rows
+
+            # Find distances of each image to each mean and update responsibility matrix
+            self.responsibility_matrix = np.zeros((self.num_images, self.K))
+            self.distances = []
+            for n, x_vec in enumerate(X):
+                x_distances = []
+                for k in range(self.K):
+                    distance = np.square(np.linalg.norm(x_vec - self.cluster_means_matrix[k]))
+                    x_distances.append(distance)
+                key = np.argmin(x_distances)
+                self.responsibility_matrix[n][key] = 1
+                self.distances.append(x_distances)
+
+            if np.array_equal(self.responsibility_matrix, initial_responsibility_matrix):
+                r_changing = False
+            else:
+                initial_responsibility_matrix = self.responsibility_matrix
+            
+            # Calculate loss for each iteration
+            loss = 0
+            for n in range(self.num_images):
+                loss += self.responsibility_matrix[n] @ self.distances[n]
+            self.losses.append(loss)
+            self.iter_count += 1
+        
+        # ~~ Part 1 ~~
+        plt.plot(np.arange(0, self.iter_count), self.losses)
+        plt.xlabel("Number of Iterations")
+        plt.ylabel("Residual Sum of Squares")
+        plt.show()
 
     # This should return the arrays for K images. Each image should represent the mean of each of the fitted clusters.
     def get_mean_images(self):
-        # TODO: change this!
-        return small_dataset[:self.K]
+        return self.cluster_means_matrix
 
 class HAC(object):
     def __init__(self, linkage):
@@ -64,7 +124,10 @@ make_mean_image_plot(large_dataset, False)
 
 # ~~ Part 3 ~~
 # TODO: Change this line! standardize large_dataset and store the result in large_dataset_standardized
+mean = np.mean(large_dataset, axis=0)
+sdev = np.std(large_dataset, axis=0)
 large_dataset_standardized = large_dataset
+# INCOMPLETE
 make_mean_image_plot(large_dataset_standardized, True)
 
 # Plotting code for part 4
