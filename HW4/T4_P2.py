@@ -90,69 +90,72 @@ class HAC(object):
         self.linkage = linkage
             
     def fit(self, X):
-        self.X = X
+        self.X = X # copy of data
         self.cluster_sizes = []
         self.assignments = np.arange(300)
         distance_matrix = cdist(X, X)
-        
-        if self.linkage == "centroid":
-            while(len(self.X) > 10):
+
+        while (len(np.unique(self.assignments)) > 10):
+            print(len(np.unique(self.assignments)))
+            if self.linkage == "min":
                 distance_matrix[distance_matrix == 0] = np.inf
                 key = np.unravel_index(distance_matrix.argmin(), distance_matrix.shape)
-
-                cluster1 = self.X[key[0]]
-                cluster2 = self.X[key[0]]
-
-                self.X = np.delete(self.X, [key[0], key[1]], 0)
-
-                centroid = (cluster1 + cluster2) / 2
-
-                self.X = np.vstack((self.X, centroid))
+                distance_matrix[key[0], key[1]] = np.inf
+                distance_matrix[key[1], key[0]] = np.inf
+            elif self.linkage == "max":
+                distance_matrix[distance_matrix == 0] = np.NINF
+                key = np.unravel_index(distance_matrix.argmax(), distance_matrix.shape)
+                distance_matrix[key[0], key[1]] = np.NINF
+                distance_matrix[key[1], key[0]] = np.NINF
+            else: # centroid
+                distance_matrix[distance_matrix == 0] = np.inf
+                key = np.unravel_index(distance_matrix.argmin(), distance_matrix.shape)
+                print(key)
+            
+            # Update assignments array
+            for i in range(len(self.assignments)):
+                if key[1] < key[0]:
+                    if self.assignments[i] == key[0]:
+                        self.assignments[i] = key[1]
+                else:
+                    if self.assignments[i] == key[1]:
+                        self.assignments[i] = key[0]
+            
+            if self.linkage == "centroid":
+                indexes = []
+                for i, elt in enumerate(self.assignments):
+                    if elt == min([key[0], key[1]]):
+                        indexes.append(i)
+                print("Index")
+                print(indexes)
+                new_cluster_sum = np.zeros(784)
+                for i in indexes:
+                    new_cluster_sum += self.X[i]
                 
-                distance_matrix = cdist(self.X, self.X)
-        
-        else: # min or max
-            while (len(np.unique(self.assignments)) > 10):
-                if self.linkage == "min":
-                    distance_matrix[distance_matrix == 0] = np.inf
-                    key = np.unravel_index(distance_matrix.argmin(), distance_matrix.shape)
-                    distance_matrix[key[0], key[1]] = np.inf
-                    distance_matrix[key[1], key[0]] = np.inf
-                else: # max
-                    distance_matrix[distance_matrix == 0] = np.NINF
-                    key = np.unravel_index(distance_matrix.argmax(), distance_matrix.shape)
-                    distance_matrix[key[0], key[1]] = np.NINF
-                    distance_matrix[key[1], key[0]] = np.NINF
+                centroid = new_cluster_sum / len(indexes)
+                
+                for i in indexes:
+                    X[i] = centroid
 
-                for i in range(len(self.assignments)):
-                    if key[1] < key[0]:
-                        if self.assignments[i] == key[0]:
-                            self.assignments[i] = key[1]
-                    else:
-                        if self.assignments[i] == key[1]:
-                            self.assignments[i] = key[0]
+                distance_matrix = cdist(X, X)
 
     # Returns the mean image when using n_clusters clusters
     def get_mean_images(self, n_clusters):
-        if self.linkage == "centroid":
-            self.cluster_sizes = np.arange(10) # TODO
-            return self.X
-        else: # max or min
-            cluster_means = []
-            for _ in range(n_clusters):
-                min_n = min(self.assignments)
-                indexes = []
-                for i in range(len(self.assignments)):
-                    if self.assignments[i] == min_n:
-                        indexes.append(i)
-                        self.assignments[i] = 100000000 # big int
-                len_cluster = len(indexes)
-                self.cluster_sizes.append(len_cluster)
-                cluster_mean = np.zeros(784)
-                for i in indexes:
-                    cluster_mean += (1/len_cluster) * self.X[i]
-                cluster_means.append(cluster_mean)
-            return np.array(cluster_means)
+        cluster_means = []
+        for _ in range(n_clusters):
+            min_n = min(self.assignments)
+            indexes = []
+            for i in range(len(self.assignments)):
+                if self.assignments[i] == min_n:
+                    indexes.append(i)
+                    self.assignments[i] = 100000000 # big int
+            len_cluster = len(indexes)
+            self.cluster_sizes.append(len_cluster)
+            cluster_mean = np.zeros(784)
+            for i in indexes:
+                cluster_mean += (1/len_cluster) * self.X[i]
+            cluster_means.append(cluster_mean)
+        return np.array(cluster_means)
     
     def get_cluster_sizes(self):
         return self.cluster_sizes
@@ -188,15 +191,15 @@ def make_mean_image_plot(data, standardized=False):
 # _ = make_mean_image_plot(large_dataset, False)
 
 # # ~~ Part 3 ~~
-# # TODO: Change this line! standardize large_dataset and store the result in large_dataset_standardized
-# mean = np.mean(large_dataset, axis=0)
-# sdev = np.std(large_dataset, axis=0)
-# for i in range(len(sdev)):
-#     if sdev[i] == 0:
-#         sdev[i] == 1
+# TODO: Change this line! standardize large_dataset and store the result in large_dataset_standardized
+mean = np.mean(large_dataset, axis=0)
+sdev = np.std(large_dataset, axis=0)
+for i in range(len(sdev)):
+    if sdev[i] == 0:
+        sdev[i] = 1
 
-# large_dataset_standardized = (large_dataset - mean) / sdev
-# _ = make_mean_image_plot(large_dataset_standardized, True)
+large_dataset_standardized = (large_dataset - mean) / sdev
+_ = make_mean_image_plot(large_dataset_standardized, True)
 
 # Plotting code for part 4
 def hac_run():
