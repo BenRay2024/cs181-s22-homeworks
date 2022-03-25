@@ -61,6 +61,8 @@ class KMeans(object):
                 self.responsibility_matrix[n][key] = 1
                 self.distances.append(x_distances)
 
+            initial_responsibility_matrix = self.responsibility_matrix
+
             # Calculate loss for each iteration
             loss = 0
             for n in range(self.num_images):
@@ -175,18 +177,18 @@ def make_mean_image_plot(data, standardized=False):
     plt.show()
 
 # ~~ Part 2 ~~
-# make_mean_image_plot(large_dataset, False)
+make_mean_image_plot(large_dataset, False)
 
 # ~~ Part 3 ~~
 # TODO: Change this line! standardize large_dataset and store the result in large_dataset_standardized
-# mean = np.mean(large_dataset, axis=0)
-# sdev = np.std(large_dataset, axis=0)
-# for i in range(len(sdev)):
-#     if sdev[i] == 0:
-#         sdev[i] == 1
+mean = np.mean(large_dataset, axis=0)
+sdev = np.std(large_dataset, axis=0)
+for i in range(len(sdev)):
+    if sdev[i] == 0:
+        sdev[i] == 1
 
-# large_dataset_standardized = (large_dataset - mean) / sdev
-# make_mean_image_plot(large_dataset_standardized, True)
+large_dataset_standardized = (large_dataset - mean) / sdev
+make_mean_image_plot(large_dataset_standardized, True)
 
 # Plotting code for part 4
 LINKAGES = [ 'max', 'min', 'centroid' ]
