@@ -1,9 +1,12 @@
 # CS 181, Spring 2022
 # Homework 4
 
+from re import S
 import numpy as np
 import matplotlib.pyplot as plt
+import copy
 from scipy.spatial.distance import cdist
+from seaborn import heatmap
 
 # Loading datasets for K-Means and HAC
 small_dataset = np.load("data/small_dataset.npy")
@@ -20,7 +23,7 @@ class KMeans(object):
         self.K = K
         self.losses = []
         self.iter_count = 0
-        
+      
     # X is a (N x 28 x 28) array where 28x28 is the dimensions of each of the N images.
     def fit(self, X):
         self.num_images, self.dim_images = X.shape # 5000, 784
@@ -84,19 +87,27 @@ class KMeans(object):
     
     def get_cluster_sizes(self):
         return self.cluster_sizes
+    
+    def get_assignments(self):
+        standardized_assignments = []
+        for i, row in enumerate(self.responsibility_matrix):
+            index = np.where(row == 1)
+            standardized_assignments.append(index[0][0])
+        return standardized_assignments
+
 
 class HAC(object):
     def __init__(self, linkage):
         self.linkage = linkage
             
     def fit(self, X):
+        self.num_images, self.dim_images = X.shape # 300, 784
         self.X = X # copy of data
         self.cluster_sizes = []
-        self.assignments = np.arange(300)
+        self.assignments = np.arange(self.num_images)
         distance_matrix = cdist(X, X)
 
         while (len(np.unique(self.assignments)) > 10):
-            print(len(np.unique(self.assignments)))
             if self.linkage == "min":
                 distance_matrix[distance_matrix == 0] = np.inf
                 key = np.unravel_index(distance_matrix.argmin(), distance_matrix.shape)
@@ -110,25 +121,20 @@ class HAC(object):
             else: # centroid
                 distance_matrix[distance_matrix == 0] = np.inf
                 key = np.unravel_index(distance_matrix.argmin(), distance_matrix.shape)
-                print(key)
             
             # Update assignments array
             for i in range(len(self.assignments)):
-                if key[1] < key[0]:
-                    if self.assignments[i] == key[0]:
-                        self.assignments[i] = key[1]
-                else:
-                    if self.assignments[i] == key[1]:
-                        self.assignments[i] = key[0]
+                min_key = min([key[0], key[1]])
+                if self.assignments[i] == key[0] or self.assignments[i] == key[1]:
+                    self.assignments[i] = min_key
             
             if self.linkage == "centroid":
                 indexes = []
                 for i, elt in enumerate(self.assignments):
                     if elt == min([key[0], key[1]]):
                         indexes.append(i)
-                print("Index")
-                print(indexes)
-                new_cluster_sum = np.zeros(784)
+
+                new_cluster_sum = np.zeros(self.dim_images)
                 for i in indexes:
                     new_cluster_sum += self.X[i]
                 
@@ -141,6 +147,8 @@ class HAC(object):
 
     # Returns the mean image when using n_clusters clusters
     def get_mean_images(self, n_clusters):
+        print(self.assignments)
+        self.assignments_copy = copy.deepcopy(self.assignments)
         cluster_means = []
         for _ in range(n_clusters):
             min_n = min(self.assignments)
@@ -151,7 +159,7 @@ class HAC(object):
                     self.assignments[i] = 100000000 # big int
             len_cluster = len(indexes)
             self.cluster_sizes.append(len_cluster)
-            cluster_mean = np.zeros(784)
+            cluster_mean = np.zeros(self.dim_images)
             for i in indexes:
                 cluster_mean += (1/len_cluster) * self.X[i]
             cluster_means.append(cluster_mean)
@@ -159,6 +167,21 @@ class HAC(object):
     
     def get_cluster_sizes(self):
         return self.cluster_sizes
+    
+    def get_assignments(self):
+        counter = 0
+        standardized_assignments = np.zeros(self.num_images)
+        while(counter < 10):
+            assignment_tracker = []
+            min_cluster = min(self.assignments_copy)
+            for i in range(len(standardized_assignments)):
+                if self.assignments_copy[i] == min_cluster:
+                    assignment_tracker.append(i)
+                    self.assignments_copy[i] = 1000000000 # big int
+            for i in assignment_tracker:
+                standardized_assignments[i] = counter
+            counter += 1
+        return standardized_assignments
             
 
 # Plotting code for parts 2 and 3
@@ -185,7 +208,7 @@ def make_mean_image_plot(data, standardized=False):
             if i == 0: ax.set_ylabel('Class '+str(k), rotation=90)
             plt.imshow(allmeans[k,i].reshape(28,28), cmap='Greys_r')
     plt.show()
-    return KMeansClassifier.get_cluster_sizes()
+    return KMeansClassifier.get_cluster_sizes(), KMeansClassifier.get_assignments()
 
 # ~~ Part 2 ~~
 # _ = make_mean_image_plot(large_dataset, False)
@@ -199,13 +222,17 @@ for i in range(len(sdev)):
         sdev[i] = 1
 
 large_dataset_standardized = (large_dataset - mean) / sdev
-_ = make_mean_image_plot(large_dataset_standardized, True)
+# _ = make_mean_image_plot(large_dataset_standardized, True)
+
+# K-Means with small dataset
+kmeans_clusters, kmeans_assignments = make_mean_image_plot(small_dataset, False)
 
 # Plotting code for part 4
 def hac_run():
     LINKAGES = [ 'max', 'min', 'centroid' ]
     n_clusters = 10
     cluster_counts = []
+    assignments = []
     fig = plt.figure(figsize=(10,10))
     plt.suptitle("HAC mean images with max, min, and centroid linkages")
     for l_idx, l in enumerate(LINKAGES):
@@ -214,6 +241,7 @@ def hac_run():
         hac.fit(small_dataset)
         mean_images = hac.get_mean_images(n_clusters)
         cluster_counts.append(hac.get_cluster_sizes())
+        assignments.append(hac.get_assignments())
         # Make plot
         for m_idx in range(mean_images.shape[0]):
             m = mean_images[m_idx]
@@ -225,20 +253,87 @@ def hac_run():
             if l_idx == 0: ax.set_ylabel('Class '+str(m_idx), rotation=90)
             plt.imshow(m.reshape(28,28), cmap='Greys_r')
     plt.show()
-    return cluster_counts
+    
+    return cluster_counts, assignments
 
-hac_clusters = hac_run()
+hac_clusters, hac_assignments = hac_run()
 
 # # TODO: Write plotting code for part 5
-kmeans_clusters = make_mean_image_plot(small_dataset, False)
 
-line1, = plt.plot(np.arange(10), kmeans_clusters, label="K-Means")
-line2, = plt.plot(np.arange(10), hac_clusters[0], label="HAC (max)")
-line3, = plt.plot(np.arange(10), hac_clusters[1], label="HAC (min)")
-line4, = plt.plot(np.arange(10), hac_clusters[2], label="HAC (centroid)")
-leg = plt.legend(loc="upper right")
+plt.bar(np.arange(10), kmeans_clusters, width=0.4, label="K-Means")
+plt.bar(np.arange(10), hac_clusters[0], width=0.4, label="HAC (max)")
+plt.bar(np.arange(10), hac_clusters[1], width=0.4, label="HAC (min)")
+plt.bar(np.arange(10), hac_clusters[2], width=0.4, label="HAC (centroid)")
+plt.legend(loc="upper right")
 plt.xlabel("Cluster index")
 plt.ylabel("Number of images in cluster")
 plt.show()
 
 # # TODO: Write plotting code for part 6
+print(kmeans_assignments)
+print(hac_assignments)
+
+map = np.zeros((10,10))
+for i in range(len(kmeans_assignments)):
+    x = int(kmeans_assignments[i])
+    y = int(hac_assignments[0][i])
+    map[x][y] += 1
+heatmap(map)
+plt.xlabel("K-Means")
+plt.ylabel("HAC max")
+plt.show()
+
+# kmeans and HAC min
+map = np.zeros((10,10))
+for i in range(len(kmeans_assignments)):
+    x = int(kmeans_assignments[i])
+    y = int(hac_assignments[1][i])
+    map[x][y] += 1
+heatmap(map)
+plt.xlabel("K-Means")
+plt.ylabel("HAC min")
+plt.show()
+
+# kmeans and HAC centroid
+map = np.zeros((10,10))
+for i in range(len(kmeans_assignments)):
+    x = int(kmeans_assignments[i])
+    y = int(hac_assignments[2][i])
+    map[x][y] += 1
+heatmap(map)
+plt.xlabel("K-Means")
+plt.ylabel("HAC centroid")
+plt.show()
+
+# HAC max and HAC min
+map = np.zeros((10,10))
+for i in range(len(kmeans_assignments)):
+    x = int(hac_assignments[0][i])
+    y = int(hac_assignments[1][i])
+    map[x][y] += 1
+heatmap(map)
+plt.xlabel("HAC max")
+plt.ylabel("HAC min")
+plt.show()
+
+# HAC max and HAC centroid
+map = np.zeros((10,10))
+for i in range(len(kmeans_assignments)):
+    x = int(hac_assignments[0][i])
+    y = int(hac_assignments[2][i])
+    map[x][y] += 1
+heatmap(map)
+plt.xlabel("HAC max")
+plt.ylabel("HAC centroid")
+plt.show()
+
+# HAC min and HAC centroid
+map = np.zeros((10,10))
+for i in range(len(kmeans_assignments)):
+    x = int(hac_assignments[1][i])
+    y = int(hac_assignments[2][i])
+    map[x][y] += 1
+heatmap(map)
+plt.xlabel("HAC min")
+plt.ylabel("HAC centroid")
+plt.show()
