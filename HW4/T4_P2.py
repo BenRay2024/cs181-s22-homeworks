@@ -108,27 +108,42 @@ class HAC(object):
         distance_matrix = cdist(X, X)
 
         while (len(np.unique(self.assignments)) > 10):
+            print(len(np.unique(self.assignments)))
             if self.linkage == "min":
                 distance_matrix[distance_matrix == 0] = np.inf
                 key = np.unravel_index(distance_matrix.argmin(), distance_matrix.shape)
                 distance_matrix[key[0], key[1]] = np.inf
                 distance_matrix[key[1], key[0]] = np.inf
+
+                # Update assignments array
+                for i in range(len(self.assignments)):
+                    if self.assignments[key[0]] < self.assignments[key[1]]:
+                        if self.assignments[i] == self.assignments[key[1]]:
+                            self.assignments[i] = self.assignments[key[0]]
+                    if self.assignments[key[1]] < self.assignments[key[0]]:
+                        if self.assignments[i] == self.assignments[key[0]]:
+                            self.assignments[i] = self.assignments[key[1]]
+                
             elif self.linkage == "max":
                 distance_matrix[distance_matrix == 0] = np.NINF
                 key = np.unravel_index(distance_matrix.argmax(), distance_matrix.shape)
                 distance_matrix[key[0], key[1]] = np.NINF
                 distance_matrix[key[1], key[0]] = np.NINF
+
+                for i in range(len(self.assignments)):    
+                    min_key = min([key[0], key[1]])
+                    if self.assignments[i] == key[0] or self.assignments[i] == key[1]:
+                        self.assignments[i] = min_key
+
             else: # centroid
                 distance_matrix[distance_matrix == 0] = np.inf
                 key = np.unravel_index(distance_matrix.argmin(), distance_matrix.shape)
+
+                for i in range(len(self.assignments)):    
+                    min_key = min([key[0], key[1]])
+                    if self.assignments[i] == key[0] or self.assignments[i] == key[1]:
+                        self.assignments[i] = min_key
             
-            # Update assignments array
-            for i in range(len(self.assignments)):
-                min_key = min([key[0], key[1]])
-                if self.assignments[i] == key[0] or self.assignments[i] == key[1]:
-                    self.assignments[i] = min_key
-            
-            if self.linkage == "centroid":
                 indexes = []
                 for i, elt in enumerate(self.assignments):
                     if elt == min([key[0], key[1]]):
@@ -259,11 +274,25 @@ def hac_run():
 hac_clusters, hac_assignments = hac_run()
 
 # # TODO: Write plotting code for part 5
+plt.bar(np.arange(10), kmeans_clusters, label="K-Means")
+plt.legend(loc="upper right")
+plt.xlabel("Cluster index")
+plt.ylabel("Number of images in cluster")
+plt.show()
 
-plt.bar(np.arange(10), kmeans_clusters, width=0.4, label="K-Means")
-plt.bar(np.arange(10), hac_clusters[0], width=0.4, label="HAC (max)")
-plt.bar(np.arange(10), hac_clusters[1], width=0.4, label="HAC (min)")
-plt.bar(np.arange(10), hac_clusters[2], width=0.4, label="HAC (centroid)")
+plt.bar(np.arange(10), hac_clusters[0], label="HAC (max)")
+plt.legend(loc="upper right")
+plt.xlabel("Cluster index")
+plt.ylabel("Number of images in cluster")
+plt.show()
+
+plt.bar(np.arange(10), hac_clusters[1], label="HAC (min)")
+plt.legend(loc="upper right")
+plt.xlabel("Cluster index")
+plt.ylabel("Number of images in cluster")
+plt.show()
+
+plt.bar(np.arange(10), hac_clusters[2], label="HAC (centroid)")
 plt.legend(loc="upper right")
 plt.xlabel("Cluster index")
 plt.ylabel("Number of images in cluster")
