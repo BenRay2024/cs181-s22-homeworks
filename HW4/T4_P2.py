@@ -226,7 +226,7 @@ def make_mean_image_plot(data, standardized=False):
     return KMeansClassifier.get_cluster_sizes(), KMeansClassifier.get_assignments()
 
 # ~~ Part 2 ~~
-# _ = make_mean_image_plot(large_dataset, False)
+_ = make_mean_image_plot(large_dataset, False)
 
 # # ~~ Part 3 ~~
 # TODO: Change this line! standardize large_dataset and store the result in large_dataset_standardized
@@ -237,7 +237,7 @@ for i in range(len(sdev)):
         sdev[i] = 1
 
 large_dataset_standardized = (large_dataset - mean) / sdev
-# _ = make_mean_image_plot(large_dataset_standardized, True)
+_ = make_mean_image_plot(large_dataset_standardized, True)
 
 # K-Means with small dataset
 kmeans_clusters, kmeans_assignments = make_mean_image_plot(small_dataset, False)
