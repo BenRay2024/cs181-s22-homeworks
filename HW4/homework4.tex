@@ -177,6 +177,7 @@ On $\bphi(x)_2 = 0$, $y_i = -1$:
 Thus, the constraints are tight for all support vectors of the classifier. $\qedsymbol$
 
 \noindent\textbf{Solution 1.8:}\\
+As before, blue coordinates represent the transformed data with class $y = +1$; orange coordinates represent the transformed data with class $y = -1$. However, this feature map is clearly not linearly separable - there is no one straight line that separates the blue and orange points. Thus, for this SVM classification problem, I would choose to use the feature map plotted in part 1.1, as calculation of the margin is much simpler.
 \begin{center}
     \includegraphics[scale=0.6]{1.8.png}
 \end{center}
@@ -291,16 +292,18 @@ The plot verifies that the K-means objective function is always decreasing as th
     \includegraphics[scale=0.6]{2.3.png}
 \end{center}
 All of the pixels in the mean images (the centroids) appear to be greyer, rather than a crisp black background with white colored text overlayed as seen in 2.2. As a result, the images created from standardized data appear blurrier.\\
-This occurs because pixel values range from 0 (white) to 255 (black). If you consider edge pixel$_i$ in the image, which is usually black-ish, it will have a pixel value >200. Thus, the mean of an edge pixel is c. 227.5. Therefore, where we standardize an edge pixel that is pure black, the pixel value becomes $(255 - 227.5)/ \sigma_i$
-This is because in our standardized data, the pixels have a lower variance
 
-edge pixel is black - mean of edge pixels is c. 255 - subtract mean makes it 0
+This occurs because pixel values range from 0 (white) to 255 (black). If you consider an edge pixel in the image, which is usually black-ish, it will have a pixel value $>$200. Thus, the mean of an edge pixel is ~227.5. Therefore, where we standardize an edge pixel that is pure black, the pixel value becomes $\frac{(255 - 227.5)}{\sigma_i} = \frac{(27.5)}{\sigma_i}$. This standardized pixel value is significantly lower than the original, so the edge pixel appears lighter/greyer. Analogously, if you consider a central pixel in the image, which is usually white-ish, it will have a pixel value $<$50. Thus, the mean of an edge pixel is ~22.5. Therefore, where we standardize a central pixel that is pure black, the pixel value becomes $\frac{(50 - 22.5)}{\sigma_i} = \frac{(22.5)}{\sigma_i}$. This standardized pixel value is again lower than the original, so the central pixel appears lighter/greyer.\\
+
+Ultimately, therefore, the pixels are all lighter and are end up being more similar in color. This makes sense, given the pixels in our standardized images have a lower variance than in the originals (which have high contrast between black and white pixels).
 
 \noindent\textbf{Solution 2.4:}\\
 \begin{center}
     \includegraphics[scale=0.6]{2.4.png}
 \end{center}
-Unlike k-means, which needs to be run several times in order to avoid ``getting stuck" at a local minimum of the objective function,  
+The crispness of the k-means images was quite high (for the non-standardized data). The HAC max cluster means appear to be the blurriest, whilst the HAC min and HAC centroid cluster means appear quite crisp in all but the first (0th) class.\\
+
+Unlike k-means, which needs to be run several times in order to avoid ``getting stuck" at a local minimum of the objective function, HAC only needs to be run once, after having selected a linkage criterion, because it calculates the clusters in a deterministic way (without using calculus).
 
 \noindent\textbf{Solution 2.5:}\\
 \begin{center}
