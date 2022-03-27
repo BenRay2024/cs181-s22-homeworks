@@ -316,9 +316,12 @@ Unlike k-means, which needs to be run several times in order to avoid ``getting 
     \includegraphics[scale=0.6]{HW4/2.5_hacmax.png}
 \end{center}
 \begin{center}
-    \includegraphics[scale=0.5]{HW4/2.5_haccentroid.png}
+    \includegraphics[scale=0.6]{HW4/2.5_haccentroid.png}
 \end{center}
-EXPLAIN
+HAC min and HAC centroid seem to cluster most images into a single cluster, whilst HAC max clusters images across a broader range of clusters. Intuitively this makes sense: for min, when a cluster gets larger, the probability that this cluster is close to other clusters increases, increasing the likelihood that this large cluster increases in size again; for max, when a cluster gets larger, it gets closer to other larger sized clusters, and so the next max distance is unlikely to be in another already-large cluster, so the likelihood of the large cluster increasing in size again decreases. This explains why max-linkage produces compact clusters, while min-linkage latches onto any neighboring closest cluster and produces stringy clusters.\\
+
+The blurriness of the outputs can be explained when a cluster mean is the average of many outputs, e.g. HAC max is quite blurry in many classes because there are lots of images in many of the classes; HAC min and HAC centroid have blurry outputs for class 0, but relatively crisp outputs for the other classes, which are averaging relatively few images; k-means is very crisp because there are only c. 30 (very few) images per class (an almost perfectly uniform distribution across clusters).
+\newpage
 
 \noindent\textbf{Solution 2.6:}\\
 \begin{center}
@@ -339,8 +342,11 @@ EXPLAIN
 \begin{center}
     \includegraphics[scale=0.5]{HW4/2.6.6.png}
 \end{center}
+Based on the heatmaps , HAC max appears to be closest  to k-means. This seems to be because the max-linkage distributes images across classes more evenly than HAC min and HAC centroid, which is similar to the way k-means distributes images across classes, as also seen in the ``num. images in cluster plots" in 2.5. Thus, we see ``hotter" points distributed across more of the HAC max/k-means heatmap than other heatmaps.
+\newpage
 
 \noindent\textbf{Solution 2.7:}\\
+Yes - how well the clustering matches the true digits is reasonable evaluation metric for the clustering. The more accurate the clusterings, the more we would see ``hotter" cells distributed evenly across our heatmaps; by comparison, less correct clusterings would produce uneven heatmaps. Effectively, using the true digits to evaluate the clustering turns this problem into a supervised learning problem, rather than an unsupervised one - e.g. we could use something like 0/1 loss as a basic evaluation metric using such a method.
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -389,11 +395,14 @@ Draw a causal chain that resulted in this outcome and circle the choice points t
 
 \subsection*{Collaborators and Resources}
 Whom did you work with, and did you use any resources beyond cs181-textbook and your notes?\\
-https://www.cs.princeton.edu/courses/archive/fall18/cos324/files/kmeans.pdf
-\\
+https://www.cs.princeton.edu/courses/archive/fall18/cos324/files/kmeans.pdf\\
+Josh Michels, Elias Nuwara, Ty Geri\\
+
 Did you attend office hours for help with this homework?\\
 Yes
+
 \subsection*{Calibration}
-Approximately how long did this homework take you to complete (in hours)? 
+Approximately how long did this homework take you to complete (in hours)?\\
+18
 
 \end{document}
