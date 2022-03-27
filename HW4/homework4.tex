@@ -210,19 +210,67 @@ The code in \texttt{T4\_P2.py} loads the images into your environment into two a
 
 \subsection*{Solution}
 \noindent\textbf{Solution 2.1:}\\
+The plot verifies that the K-means objective function is always decreasing as the number of iterations increases:
 \begin{center}
-    \includegraphics[scale=0.7]{Basis1.png}
+    \includegraphics[scale=0.7]{2.1.png}
 \end{center}
+\newpage
 
 \noindent\textbf{Solution 2.2:}\\
+\begin{center}
+    \includegraphics[scale=0.6]{2.2.png}
+\end{center}
 
 \noindent\textbf{Solution 2.3:}\\
+\begin{center}
+    \includegraphics[scale=0.6]{2.3.png}
+\end{center}
+All of the pixels in the mean images (the centroids) appear to be greyer, rather than a crisp black background with white colored text overlayed as seen in 2.2. As a result, the images created from standardized data appear blurrier.\\
+This occurs because pixel values range from 0 (white) to 255 (black). If you consider edge pixel$_i$ in the image, which is usually black-ish, it will have a pixel value >200. Thus, the mean of an edge pixel is c. 227.5. Therefore, where we standardize an edge pixel that is pure black, the pixel value becomes $(255 - 227.5)/ \sigma_i$
+This is because in our standardized data, the pixels have a lower variance
+
+edge pixel is black - mean of edge pixels is c. 255 - subtract mean makes it 0
 
 \noindent\textbf{Solution 2.4:}\\
+\begin{center}
+    \includegraphics[scale=0.6]{2.4.png}
+\end{center}
+Unlike k-means, which needs to be run several times in order to avoid ``getting stuck" at a local minimum of the objective function,  
 
 \noindent\textbf{Solution 2.5:}\\
+\begin{center}
+    \includegraphics[scale=0.6]{HW4/2.5_kmeans.png}
+\end{center}
+\begin{center}
+    \includegraphics[scale=0.6]{HW4/2.5_hacmin.png}
+\end{center}
+\begin{center}
+    \includegraphics[scale=0.6]{HW4/2.5_hacmax.png}
+\end{center}
+\begin{center}
+    \includegraphics[scale=0.5]{HW4/2.5_haccentroid.png}
+\end{center}
+EXPLAIN
 
 \noindent\textbf{Solution 2.6:}\\
+\begin{center}
+    \includegraphics[scale=0.5]{HW4/2.6.1.png}
+\end{center}
+\begin{center}
+    \includegraphics[scale=0.5]{HW4/2.6.2.png}
+\end{center}
+\begin{center}
+    \includegraphics[scale=0.5]{HW4/2.6.3.png}
+\end{center}
+\begin{center}
+    \includegraphics[scale=0.5]{HW4/2.6.4.png}
+\end{center}
+\begin{center}
+    \includegraphics[scale=0.5]{HW4/2.6.5.png}
+\end{center}
+\begin{center}
+    \includegraphics[scale=0.5]{HW4/2.6.6.png}
+\end{center}
 
 \noindent\textbf{Solution 2.7:}\\
 
