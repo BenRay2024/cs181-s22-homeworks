@@ -140,7 +140,7 @@ Vectors on the decision boundary have the form, $\bphi(x) = \begin{bmatrix} 0 \\
 \end{align*}
 In 1.1, we found that the decision boundary was given by $\bphi(x)_2 = -1$. Comparing this to the above expression, we get:
 \begin{align*}
-    -\frac{w_0}{w_2} &= -1 \text{on the decision boundary}\\
+    -\frac{w_0}{w_2} &= -1 \text{  on the decision boundary}\\
     \implies  w_2 &= w_0
 \end{align*}
 Therefore, $(\boldw, w_0) = (\begin{bmatrix} 0 \\ w_0 \\ \end{bmatrix}, w_0)$ (for all $w_0 \in \reals$) defines the set which makes the discriminant equal to 0.
@@ -158,8 +158,9 @@ By inspection, the width between the support vectors (the vectors with the min m
 \end{align*}
 
 \noindent\textbf{Solution 1.6:}\\
-From 1.4: $w_0^* = 1$.\\
-Therefore, the discriminant function is $h(\bphi(x);\boldw^*,w_0^*) = \begin{bmatrix} 0\\ 1 \\ \end{bmatrix} \cdot \bphi(x) + 1 &= 0$.
+From 1.4: $w_0^* = 1$.
+
+Therefore, the discriminant function is $h(\bphi(x);\boldw^*,w_0^*) = \begin{bmatrix} 0\\ 1 \\ \end{bmatrix} \cdot \bphi(x) + 1 = 0$.
 
 \noindent\textbf{Solution 1.7:}\\
 Support vectors exist anywhere on the lines $\bphi(x)_2 = 0$ and $\bphi(x)_2 = -2$, so they have the form $\begin{bmatrix} x_1\\ 0\\ \end{bmatrix}$ and $\begin{bmatrix} x_1\\ -2\\ \end{bmatrix}$ respectively. The constraint is tight when $y_i(\mathbf{w}^\top \bphi(x_i) + w_0) = 1$.
@@ -177,7 +178,7 @@ On $\bphi(x)_2 = 0$, $y_i = -1$:
 Thus, the constraints are tight for all support vectors of the classifier. $\qedsymbol$
 
 \noindent\textbf{Solution 1.8:}\\
-As before, blue coordinates represent the transformed data with class $y = +1$; orange coordinates represent the transformed data with class $y = -1$. However, this feature map is clearly not linearly separable - there is no one straight line that separates the blue and orange points. Thus, for this SVM classification problem, I would choose to use the feature map plotted in part 1.1, as calculation of the margin is much simpler.
+As before, blue coordinates represent the transformed data with class $y = +1$; orange coordinates represent the transformed data with class $y = -1$. However, this feature map is clearly not linearly separable - there is no one straight line that separates the blue and orange points. Thus, for this SVM classification problem, I would choose to use the feature map plotted in part 1.1, as calculation of the margin is much simpler than calculating the margin for a much more complex decision boundary (e.g. an oval / rectangle / pair of parallel lines) in this example.
 \begin{center}
     \includegraphics[scale=0.6]{1.8.png}
 \end{center}
@@ -291,17 +292,17 @@ The plot verifies that the K-means objective function is always decreasing as th
 \begin{center}
     \includegraphics[scale=0.6]{2.3.png}
 \end{center}
-All of the pixels in the mean images (the centroids) appear to be greyer, rather than a crisp black background with white colored text overlayed as seen in 2.2. As a result, the images created from standardized data appear blurrier.\\
+All of the pixels in the mean images (the centroids) appear to be greyer, rather than a crisp black background with white colored text overlayed as seen in 2.2. As a result, the images created from standardized data appear blurrier.
 
-This occurs because pixel values range from 0 (white) to 255 (black). If you consider an edge pixel in the image, which is usually black-ish, it will have a pixel value $>$200. Thus, the mean of an edge pixel is ~227.5. Therefore, where we standardize an edge pixel that is pure black, the pixel value becomes $\frac{(255 - 227.5)}{\sigma_i} = \frac{(27.5)}{\sigma_i}$. This standardized pixel value is significantly lower than the original, so the edge pixel appears lighter/greyer. Analogously, if you consider a central pixel in the image, which is usually white-ish, it will have a pixel value $<$50. Thus, the mean of an edge pixel is ~22.5. Therefore, where we standardize a central pixel that is pure black, the pixel value becomes $\frac{(50 - 22.5)}{\sigma_i} = \frac{(22.5)}{\sigma_i}$. This standardized pixel value is again lower than the original, so the central pixel appears lighter/greyer.\\
+This occurs because pixel values range from 0 (white) to 255 (black). If you consider an edge pixel in the image, which is usually black-ish, it will have a pixel value $>$200. Thus, the mean of an edge pixel is $\sim$227.5. Therefore, where we standardize an edge pixel that is pure black, the pixel value becomes $\frac{(255 - 227.5)}{\sigma_i} = \frac{(27.5)}{\sigma_i}$. This standardized pixel value is significantly lower than the original, so the edge pixel appears lighter/greyer. Analogously, if you consider a central pixel in the image, which is usually white-ish, it will have a pixel value $<$50. Thus, the mean of an edge pixel is $\sim$22.5. Therefore, where we standardize a central pixel that is pure black, the pixel value becomes $\frac{(50 - 22.5)}{\sigma_i} = \frac{(22.5)}{\sigma_i}$. This standardized pixel value is again lower than the original, so the central pixel appears lighter/greyer.
 
-Ultimately, therefore, the pixels are all lighter and are end up being more similar in color. This makes sense, given the pixels in our standardized images have a lower variance than in the originals (which have high contrast between black and white pixels).
+Ultimately, therefore, the pixels are all lighter and end up being more similar in color. This makes sense, given the pixels in our standardized images have a lower variance than in the originals (which have high contrast between black and white pixels).
 
 \noindent\textbf{Solution 2.4:}\\
 \begin{center}
     \includegraphics[scale=0.6]{2.4.png}
 \end{center}
-The crispness of the k-means images was quite high (for the non-standardized data). The HAC max cluster means appear to be the blurriest, whilst the HAC min and HAC centroid cluster means appear quite crisp in all but the first (0th) class.\\
+The crispness of the k-means images was quite high (for the non-standardized data). The HAC max cluster means appear to be the blurriest, whilst the HAC min and HAC centroid cluster means appear quite crisp in all but the first (0th) class.
 
 Unlike k-means, which needs to be run several times in order to avoid ``getting stuck" at a local minimum of the objective function, HAC only needs to be run once, after having selected a linkage criterion, because it calculates the clusters in a deterministic way (without using calculus).
 
@@ -318,9 +319,9 @@ Unlike k-means, which needs to be run several times in order to avoid ``getting 
 \begin{center}
     \includegraphics[scale=0.6]{HW4/2.5_haccentroid.png}
 \end{center}
-HAC min and HAC centroid seem to cluster most images into a single cluster, whilst HAC max clusters images across a broader range of clusters. Intuitively this makes sense: for min, when a cluster gets larger, the probability that this cluster is close to other clusters increases, increasing the likelihood that this large cluster increases in size again; for max, when a cluster gets larger, it gets closer to other larger sized clusters, and so the next max distance is unlikely to be in another already-large cluster, so the likelihood of the large cluster increasing in size again decreases. This explains why max-linkage produces compact clusters, while min-linkage latches onto any neighboring closest cluster and produces stringy clusters.\\
+HAC min and HAC centroid seem to cluster most images into a single cluster, whilst HAC max clusters images across a broader range of clusters. Intuitively this makes sense: for min, when a cluster gets larger, the probability that this cluster is close to other clusters increases, increasing the likelihood that this large cluster increases in size again; for max, when a cluster gets larger, it gets closer to other larger sized clusters, and so the next max distance is unlikely to link this cluster to another already-large cluster, so the likelihood of the large cluster increasing in size again decreases. This explains why max-linkage produces compact clusters, while min-linkage latches onto any neighboring closest cluster and produces stringy clusters.
 
-The blurriness of the outputs can be explained when a cluster mean is the average of many outputs, e.g. HAC max is quite blurry in many classes because there are lots of images in many of the classes; HAC min and HAC centroid have blurry outputs for class 0, but relatively crisp outputs for the other classes, which are averaging relatively few images; k-means is very crisp because there are only c. 30 (very few) images per class (an almost perfectly uniform distribution across clusters).
+The blurriness of the outputs can be explained when a cluster mean is the average of many images, e.g. HAC max is quite blurry in many classes because there are lots of images in many of the classes; HAC min and HAC centroid have blurry outputs for class 0, but relatively crisp outputs for the other classes, which are averaging relatively few images; k-means is very crisp because there are only c. 30 (very few) images per class (an almost perfectly uniform distribution across clusters).
 \newpage
 
 \noindent\textbf{Solution 2.6:}\\
@@ -386,15 +387,19 @@ Draw a causal chain that resulted in this outcome and circle the choice points t
 \end{problem}
 
 \subsection*{Solution}
+IBM Diversity in faces: insufficient training data for darker-skinned faces
 \begin{center}
-    \includegraphics[scale=0.3]{HW4/3.png}
+    \includegraphics[scale=0.25]{HW4/3.png}
 \end{center}
+
+Alternative decisions (on next page):
 
 ``IBM sets its best practices for product development":
 \begin{itemize}
   \item IBM could have chosen to outsource or collaborate on setting their best practices, involving cultural, social, and legal experts and organizations in the process.
-  \item IBM could have set quotas on diversity for its product managers (PMs), or given shared ownership of the project to PMs with different backgrounds, or required PMs' fieldwork to be signed off by a diversity expert.
+  \item IBM could have set quotas on diversity for its product managers (PMs), or given shared ownership of the project to PMs with different backgrounds, or required PMs' fieldwork plans to be signed off by a diversity expert.
 \end{itemize}
+
 ``Project manager selects training sample from population according to best practices":
 \begin{itemize}
     \item Prior to selecting a training sample, the PM chooses to enrol in racial bias training.
@@ -417,6 +422,6 @@ Yes
 
 \subsection*{Calibration}
 Approximately how long did this homework take you to complete (in hours)?\\
-18
+21
 
 \end{document}
