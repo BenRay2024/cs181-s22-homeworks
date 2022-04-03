@@ -21,10 +21,15 @@ class KMeans(object):
     # K is the K in KMeans
     def __init__(self, K):
         self.K = K
+<<<<<<< HEAD
         self.losses = []
         self.iter_count = 0
       
     # X is a (N x 28 x 28) array where 28x28 is the dimensions of each of the N images.
+=======
+
+    # X is a (N x 784) array since the dimension of each image is 28x28.
+>>>>>>> bbba2829bf69eb2ce831a3c0c83cd80fcfde08a1
     def fit(self, X):
         self.num_images, self.dim_images = X.shape # 5000, 784
         self.cluster_sizes = []
@@ -99,7 +104,12 @@ class KMeans(object):
 class HAC(object):
     def __init__(self, linkage):
         self.linkage = linkage
+<<<<<<< HEAD
             
+=======
+    
+    # X is a (N x 784) array since the dimension of each image is 28x28.
+>>>>>>> bbba2829bf69eb2ce831a3c0c83cd80fcfde08a1
     def fit(self, X):
         self.num_images, self.dim_images = X.shape # 300, 784
         self.X = X # copy of data
