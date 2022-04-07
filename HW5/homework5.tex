@@ -157,30 +157,39 @@ Using the~$\boldq_n$ estimates from the Expectation Step, derive an update for m
   \item 
     Plot:
 
-    % \includegraphics[width=\linewidth]{p1}
+    \includegraphics[width=\linewidth]{p1}
 
     Code:
 
     \begin{python}
 def e_step(theta, betas):
-    q = 'not implemented'
-    return q
+    q = ds.Gamma(alpha, betas).log_prob(x) + torch.log(theta)
+    q -= q.logsumexp(dim=1, keepdim=True)
+    
+    return q.exp()
 
 
 def m_step(q):
-    theta_hat = 'not implemented'
-    beta_hats = 'not implemented'
+    theta_hat = torch.sum(q, axis=0) / len(x)
+    
+    x_t = torch.transpose(x,0,1)
+    beta_hats = alpha * torch.sum(q, axis=0) / torch.sum(torch.matmul(x_t, q), axis=0)
+
     return theta_hat, beta_hats
 
 
 def log_px(x, theta, betas):
-    p = 'not implemented'
-    return p
+    p_gamma = ds.Gamma(alpha, betas).log_prob(x).exp()
+    p = torch.sum(p_gamma * theta, axis=1)
+    
+    return p.log()
 
 
 def run_em(theta, betas, iterations=1000):
-    theta = 'not implemented'
-    betas = 'not implemented'
+    for _ in range(iterations):
+        q = e_step(theta, betas)
+        theta, betas = m_step(q)
+        
     return theta, betas
     \end{python}
 \end{enumerate}
@@ -253,20 +262,42 @@ Plots:
 Code:
 
 \begin{python}
+# Standardize data
+def standardize(x):
+    mean = x.mean(0)
+    x_std = (x - mean)
+    return x_std
+
 def pca(x, n_comps=500):
-    top_eigvals = 'not implemented'
-    top_pcomps = 'not implemented'
+
+    x = standardize(x)
+
+    U, S, V_t = torch.linalg.svd(x, full_matrices=False)
+
+    S = torch.square(S) / N
+    top_eigvals, top_indexes = torch.topk(S, n_comps)
+
+    top_pcomps = V_t[top_indexes.tolist()]
+    
     return top_eigvals, top_pcomps
 
 
 def calc_cfvs(eigvals):
-    cum_frac_vars = 'not implemented'
+    cum_frac_vars = torch.cumsum(eigvals,0) / torch.sum(eigvals,0)
     return cum_frac_vars
 
 
 def calc_errs(x, pcomps):
-    err_mean = 'not implemented'
-    err_pcomp = 'not implemented'
+    x = standardize(x)
+
+    err_mean = torch.linalg.norm(x, axis=1, ord=2)
+
+    pcomps_matrix = torch.matmul(torch.transpose(pcomps[:10],0,1), pcomps[:10])
+    err_pcomp = torch.linalg.norm(x - torch.matmul(x, pcomps_matrix), axis=1, ord=2)
+
+    err_mean = err_mean.square().mean(0)
+    err_pcomp = err_pcomp.square().mean(0)
+
     return err_mean, err_pcomp
 \end{python}
 
