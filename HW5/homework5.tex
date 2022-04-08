@@ -144,16 +144,113 @@ Using the~$\boldq_n$ estimates from the Expectation Step, derive an update for m
 \subsection*{Solution}
 
 \begin{enumerate}
+  \item We can begin by writing down the likelihood of the data, given the parameters:
+  \begin{align*}
+      p(\{x_n\}^N_{n=1}; \btheta, \{\beta_k\}^K_{k = 1}) &= \prod_{n=1}^N p(x_n; \btheta, \{\beta_k\}^K_{k = 1})\\
+      &= \prod_{n=1}^N \sum_{k=1}^K p(x_n; \btheta, \{\beta_k\}^K_{k = 1}) p(z_n = C_k; \btheta_k)
+  \end{align*}
+  Using the Law of Total Probability (LOTP), we discover that the likelihood of each individual data point is equal to the gamma distribution multiplied by the categorical distribution summed over every class. Thus, the log likelihood is given by:
+  \begin{align*}
+      \log p(\{x_n\}^N_{n=1}; \btheta, \{\beta_k\}^K_{k = 1}) &= \log \left[\prod_{n=1}^N \sum_{k=1}^K p(x_n; \btheta, \{\beta_k\}^K_{k = 1}) p(z_n = C_k; \btheta_k)\right]\\
+      &= \log \left[\prod_{n=1}^N \sum_{k=1}^K \operatorname{Gamma}(\alpha, \beta_k) \cdot \btheta_k\right]\\
+      &= \sum_{n=1}^N \log \left[ \sum_{k=1}^K \operatorname{Gamma}(\alpha, \beta_k) \cdot \btheta_k\right]
+  \end{align*}
+  Optimizing this log likelihood is intractable because we cannot easily optimize the log of the sum, even though we can adeptly optimize a sum of logs.
+  
   \item
-  \item 
-  \item 
+  We can expand the negative complete data log likelihood using LOTP:
+  \begin{align*}
+      \mcL(\btheta, \{\beta_k\}^K_{k=1}) &=  -\log p(\mathcal D; \btheta, \{\beta_k\}^K_{k=1})\\
+      &=  -\log \left[\prod_{n=1}^N p(x_n; \btheta, \{\beta_k\}^K_{k=1})\right]\\
+      &=  -\sum_{n=1}^N \log \left[p(x_n; \btheta, \{\beta_k\}^K_{k=1})\right]\\
+      &=  -\sum_{n=1}^N \log \left[\prod_{k=1}^K p(x_n | z_n = C_k; \btheta, \{\beta_k\}^K_{k=1}) p(z_n = C_k; \btheta_k)\right]\\
+      &=  -\sum_{n=1}^N \left(\log \left[\prod_{k=1}^K p(x_n | z_n = C_k; \btheta, \{\beta_k\}^K_{k=1})\right] + \log \left[\prod_{k=1}^K p(z_n = C_k; \btheta_k)\right]\right)
+  \end{align*}
+  Applying the power trick, where $z_{nk}$ is the indicator that $x_n$ is sampled from class $k$ ($C_k$), we get:
+  \begin{align*}
+      \mcL(\btheta, \{\beta_k\}^K_{k=1}) &= -\sum_{n=1}^N \left(\log \left[\prod_{k=1}^K p(x_n; \btheta, \{\beta_k\}^K_{k=1})^{z_{nk}}\right] + \log \left[\prod_{k=1}^K\btheta_k^{z_{nk}}\right]\right)\\
+      &= -\sum_{n=1}^N \left(\sum_{k=1}^K z_{nk}\left( \log \left[p(x_n; \btheta, \{\beta_k\}^K_{k=1})\right] + \log \left[\btheta_k\right]\right)\right)\\
+      &= -\sum_{n=1}^N \left(\sum_{k=1}^K z_{nk}\log \left[\operatorname{Gamma}(\alpha, \beta_k) \cdot \btheta_k\right]\right)
+  \end{align*}
+  
+  \item
+  First, find $\textbf{q}_{nk} = p(\boldz_n =\boldC_k| x_n; \btheta, \{ \beta_k \}^K_{k=1})$. Using Bayes' Rule and LOTP in the denominator, we get:
+  \begin{align*}
+      \textbf{q}_{nk} &= \frac{p(x_n | \boldz_n =\boldC_k; \btheta, \{ \beta_k \}^K_{k=1}) p(z_n = C_k; \btheta_k)}{p(x_n; \btheta, \{ \beta_k \}^K_{k=1})}\\
+      &= \frac{p(x_n | \boldz_n =\boldC_k; \btheta, \{ \beta_k \}^K_{k=1}) p(z_n = C_k; \btheta_k)}{\sum_{i=1}^K p(x_n | \boldz_n =\boldC_i; \btheta, \{ \beta_i \}^K_{i=1}) p(z_n = \boldC_i; \btheta_i)}\\
+      &= \frac{\operatorname{Gamma}(\alpha, \beta_k) \cdot \btheta_k}{\sum_{i=1}^K \operatorname{Gamma}(\alpha, \beta_i) \cdot \btheta_i}
+  \end{align*}
+  Therefore, in general:
+  \begin{align*}
+    \textbf{q}_n &= \frac{1}{\sum_{i=1}^K \operatorname{Gamma}(\alpha, \beta_i) \cdot \btheta_i} \cdot \begin{bmatrix}
+      \operatorname{Gamma}(\alpha, \beta_1) \cdot \btheta_1 \\
+      \vdots \\
+      \operatorname{Gamma}(\alpha, \beta_K) \cdot \btheta_K
+    \end{bmatrix}.
+  \end{align*}
+  
   \item 
     \begin{enumerate}
-      \item 
-      \item 
-      \item 
+      \item
+      Taking the expectation of the complete data log likelihood, i.e. the negation of the negative complete data log-likelihood we derived in 2, and applying linearity:
+      \begin{align*}
+          E_{z|x}\left[-\mcL(\btheta, \{\beta_k\}^K_{k=1}) \right] &= E_{z|x}\left[\sum_{n=1}^N \left(\sum_{k=1}^K z_{nk}\log \left[\operatorname{Gamma}(\alpha, \beta_k) \cdot \btheta_k\right]\right)\right]\\
+          &= \sum_{n=1}^N \left(\sum_{k=1}^K E_{z|x}\left[z_{nk}\right] \log \left[\operatorname{Gamma}(\alpha, \beta_k) \cdot \btheta_k\right]\right)\\
+          &= \sum_{n=1}^N \left(\sum_{k=1}^K q_{nk} \log \left[\operatorname{Gamma}(\alpha, \beta_k) \cdot \btheta_k\right]\right)
+      \end{align*}
+      
+      \item
+      In order to find the optimal $\btheta$, $\btheta^*$, we solve the following optimization problem (minimizing the expected negative log likelihood, derived from 4(a), subject to the given constraint on $\btheta$):
+      \begin{align*}
+          \argmin_{\btheta} {E_{z|x}\left[\mcL(\btheta, \{\beta_k\}^K_{k=1}) \right]} \quad \text{s.t.} \quad \sum_{k=1}^K \btheta_k = 1
+      \end{align*}
+      We set up the Lagrangian and take derivatives with respect to $\btheta_k$ and $\lambda$:
+      \begin{align*}
+          &\mathscr{L}(\btheta, \lambda) = \sum_{n=1}^N \left(\sum_{k=1}^K q_{nk} \log \left[\operatorname{Gamma}(\alpha, \beta_k)\right] + \log \left[\btheta_k\right]\right) - \lambda \left(\sum_{k=1}^K \btheta_k - 1\right)\\
+          &\implies \frac{\partial \mathscr{L}}{\partial \btheta_k} = - \sum_{n=1}^N \left(\frac{q_{nk}}{\btheta_k}\right) - \lambda &(i)\\
+          &\implies \frac{\partial \mathscr{L}}{\partial \lambda} = - \sum_{k=1}^K \btheta_k - 1 &(ii)
+      \end{align*}
+      The Lagrangian is minimized when these derivatives equal 0. Rearranging (i) gives:
+      \begin{align*}
+          \btheta_k = - \left(\frac{\sum_{n=1}^N q_{nk}}{\lambda}\right)
+      \end{align*}
+      Substituting this expression into (ii) and rearranging gives:
+      \begin{align*}
+          \lambda = - \sum_{k=1}^K \sum_{n=1}^N q_{nk}
+      \end{align*}
+      Putting this together, we get an expression for the optimal $\btheta_k \forall k$:
+      \begin{align*}
+          \btheta_k^* = \frac{\sum_{n=1}^N q_{nk}}{\sum_{k=1}^K \sum_{n=1}^N q_{nk}} = \frac{\sum_{n=1}^N q_{nk}}{N}
+      \end{align*}
+      This makes intuitive sense as $\btheta_k^*$ represents the expected proportion of the $x_n$'s sampled from class $k$.
+      
+      \item
+      In order to find the optimal $\beta_k$, $\beta_k^*$, we solve the following optimization problem (minimizing the expected negative log likelihood, derived from 4(a)):
+      \begin{align*}
+          \argmin_{\beta_k \forall k} {E_{z|x}\left[\mcL(\btheta, \{\beta_k\}^K_{k=1}) \right]} &= \argmin_{\beta_k \forall k} \left\{\sum_{n=1}^N \left(\sum_{k=1}^K q_{nk} \log \left[\operatorname{Gamma}(\alpha, \beta_k)\right] + \log \left[\btheta_k\right]\right)\right\}\\
+          &= \argmin_{\beta_k \forall k} \left\{\sum_{n=1}^N \left(\sum_{k=1}^K q_{nk} \left(\alpha \log \left[\beta_k\right] - \beta_k x_n + ...\right)\right)\right\}
+      \end{align*}
+      which we derive by substituting in the PDF of the Gamma distribution, simplifying, and abstracting away terms not including $\beta_k$ into the $...$
+      
+      Now, we take the derivative with respect to $\beta_k$ for a specific $k$:
+      \begin{align*}
+          \frac{\partial E_{z|x}[\mcL(.)]}{\partial \beta_k} = - \sum_{n=1}^N q_{nk} \left(\frac{\alpha}{\beta_k} - x_n\right)
+      \end{align*}
+      The expected negative log likelihood is minimized when this derivative equals 0. We can rearrange this equation to solve for the optimal $\beta_k$ which can be generalized $\forall k$:
+      \begin{align*}
+         \beta_k^*= \frac{\alpha \sum_{n=1}^N q_{nk}}{\sum_{n=1}^N x_n q_{nk}}
+      \end{align*}
+      This makes intuitive sense as the mean of the $\operatorname{Gamma}(\alpha, \beta_k)$ is:
+      \begin{align*}
+          \mu_k = \frac{\alpha}{\beta_k} = \frac{\sum_{n=1}^N x_n q_{nk}}{\sum_{n=1}^N q_{nk}}
+      \end{align*}
+      Using our expression for $\beta_k^*$ and rearranging, as above, we get that the mean of class $k$ is equal to the average of the $x_n$'s weighted according to the probability they were sampled from class $k$. Using $\beta_k^*$, we know that this estimation is the MLE of $\mu_k$. Thus, preserving the invariance of the MLE, it must be true that when we rearrange for $\beta_k$, we get the optimal $\beta_k$.
     \end{enumerate}
-  \item 
+    
+  \item
+  Yes, we could reuse our derivations from the M-step, but instead of $q_{nk}$ we can simply use the indicators $z_{nk}$ which are known. In doing so, we will end up with optimal parameters $\beta_k^*$'s and $\btheta^*$, calculated using the classic MLE approach - maximizing the data log likelihood (no longer the expected log likelihood!) with respect to the parameters, including the constraint on $\btheta$ from 4(b).
+  
+  \newpage
   \item 
     Plot:
 
@@ -254,10 +351,10 @@ For this problem you will implement PCA from scratch on the first 6000 images of
 \subsection*{Solution}
 Plots:
 
-% \includegraphics[width=\linewidth]{p2_cfvs}
+\includegraphics[width=\linewidth]{p2_cfvs}
 
-% \includegraphics[width=0.25\linewidth]{p2_mean}
-% \includegraphics[width=0.75\linewidth]{p2_pcomps}
+\includegraphics[width=0.25\linewidth]{p2_mean}
+\includegraphics[width=0.75\linewidth]{p2_pcomps}
 
 Code:
 
@@ -287,6 +384,9 @@ def calc_cfvs(eigvals):
     return cum_frac_vars
 
 
+
+
+
 def calc_errs(x, pcomps):
     x = standardize(x)
 
@@ -302,9 +402,29 @@ def calc_errs(x, pcomps):
 \end{python}
 
 \begin{enumerate}
-  \item 
-  \item 
-  \item 
+  \item Almost all of the variance is explained by the first 500 components. As $k$ increases, the size of the eigenvalues decrease, and so the proportion of variance explained by the $k$th eigenvalue decreases. Thus, the cumulative proportion of variance explained is concave (down) as $k$ increases, i.e. increases less rapidly as $k$ increases.
+  
+  \item \quad\\
+  \includegraphics[width=0.75\linewidth]{HW4/2.2.png}\\
+  K-means produces far sharper (less blurry) images than PCA. Intuitively, this makes sense as K-means works to cluster all the images in the same class (e.g. all of the 9s) and then averages the images in that cluster, such that the resulting centroid is a good prototype for images in that class (e.g. the cluster center looks like the average of many 9s as expected). By comparison, reconstructed images using PCA are blurrier because we lose spatial information by projecting the original images into a subspace with a lower dimension. As a result of having less information, reconstructed images could be really accurate, but they could also be really far away from what is the true clustering of identical images (e.g. ends up averaging reconstructed images that have very similar pixel values to real 9s, but also includes some images far away from the area in which there is a clustering of 9s). Thus, PCA gives us images that do not clearly distinguish between what is a number and what is a part of the background. Additionally, you can see that by averaging the different PCA images produced - i.e. creating a new linear combination of images - you could probably get closer to a sharper image (e.g. consider averaging PC index 2 and PC index 4 from the above in order to get a clearer 8). Thus, PCA does a good job but does not necessarily get its linear combinations right; K-means does a better job of producing clear images by placing them in the correct cluster, without having to weight them according to some linear combination, which it could get a bit wrong!
+  
+  In terms of similarities, it is clear that both PCA and K-means produce images that look like digits set on single-coloured backgrounds which have low variance. Although the backgrounds of the PCA images are lighter than the K-means images, background edge pixels have low variance across all the original images, so PCA and K-means are both able to re-produce this in the resulting images which all have a low variance across the background edge pixels.
+  
+  \item \quad
+    \begin{center}
+        \begin{tabular}{ |c|c| } 
+        \hline
+        Reconstruction error (using mean) & $3.436022 \times 10^6$ \\
+        \hline
+        Reconstruction error (using mean and top 10 pcomps) & $1.731315 \times 10^6$\\
+        \hline
+        K-means objective loss & $1.3 \times 10^10$\\
+        \hline
+        \end{tabular}
+    \end{center}
+    The loss calculated from my implementation of K-means (in the table above) is not well suited for this comparison (it should be c. $2.6 \times 10^6$ - from office hours). We would expect the K-means loss to be between the reconstruction errors with and without using the principal components. Clearly, the reconstruction error using the mean should be the highest, since we are not doing any machine learning, just finding the squared loss between every image and the average of all the images. (If we had an algorithm that did worse than this, we would have wasted a lot of time!) The reconstruction error  using the top 10 principal components should be the lowest because we know that the PCA algorithm minimizes the reconstruction error by projecting into a lower subspace using the principal components. By comparison, K-means should have a slightly higher loss (albeit still lower than the reconstruction error, not using the principal components) since it is placing images into clusters and then taking averages of those clusters. The loss compares the original images with these averages, which are arguably just more sophisticated averages than the one average of all the data used by the reconstruction error, not using the principal components. Thus, K-means gets us a local minimum ob the objective function, iterating in such a way that the loss always decreases, but never minimizing the objective function to the same extent as PCA with its reconstruction loss using the principal components.
+
+  \item Multiplying $U$ by some rotation matrix $R$ would not change the quality of the reconstruction error, since the eigenvectors in $U$ define an orthogonal basis of the lower dimensional subspace, from which we are reconstructing the data. Rotating all of these eigenvectors still results in an orthogonal basis that defines this same subspace, and so we can still reconstruct the images using a linear combination of these rotated eigenvectors. However, the interpretation of these rotated components changes as they no longer point in the directions of maximum variance.
 \end{enumerate}
 
 \newpage
@@ -406,13 +526,34 @@ questions and show your work (i.e., state what the blocking path(s) is/are and w
 \newpage
 \section*{Solution}
 \begin{enumerate}
-  \item 
-  \item 
-  \item 
-  \item 
-  \item 
-  \item 
-  \item 
+  \item NO. The path from Weekend -- Traveling -- Get sleep is not blocked following the d-separation rules as we do not observe Traveling. Thus, the two are not independent.
+  \item YES. The path from Sick -- Get sleep -- Traveling -- Weekend is blocked following the d-separation rules as we do not observe Get Sleep. The other path from Sick -- Eat exotic foods -- Friends over -- Weekend is blocked following the d-separation rules as we do not observe Eat exotic foods. Thus, the two are independent.
+  \item NO. The path from Sick -- Eat exotic foods -- Friends over is not blocked following the d-separation rules as we now observe Eat exotic foods. Thus, the two are not independent given Eat exotic foods.
+  \item NO. The path from Get sleep -- Traveling -- Weekend -- Friends over is not blocked following the d-separation rules as we do not observe Traveling nor Weekend. Thus, the two are not independent.
+  \item YES. The path from Get sleep -- Traveling -- Weekend -- Friends over is blocked following the d-separation rules as we now observe Traveling. Likewise, the other path from Get sleep -- Traveling -- Eat exotic foods -- Friends over is blocked following the d-separation rules by observing Traveling. Finally, the path from Get sleep -- Sick -- Eat exotic foods -- Friends over is blocked following the d-separation rules as we do not observe Eat exotic foods. Thus, the two are independent given Traveling. 
+  \item \quad
+  
+      \begin{center}
+        \begin{tikzpicture}[
+          node distance=1cm and .5cm,
+          bn/.style={draw,ellipse,text width=2cm,align=center}
+            ]
+            \node[bn] (w) {\attr{Weekend}};
+            \node[bn,below right=of w] (t) {\attr{Traveling}};
+            \node[bn,right=of t] (s) {\attr{Sick}};
+            \node[bn,below left=of w] (f) {\attr{Friends over}};
+            \node[bn,below right=of f] (eef) {\attr{Eat exotic foods}};
+            \node[bn,right=of eef] (gs) {\attr{Get sleep}};
+            \path (w) edge[-latex] (t)
+            (w) edge[-latex] (f)
+            (f) edge[-latex] (eef)
+            (t) edge[-latex] (eef)
+            (s) edge[-latex] (gs)
+            (s) edge[-latex] (eef);
+            \end{tikzpicture}
+        \end{center}
+
+  \item YES. The path from Get sleep -- Sick -- Eat exotic foods -- Friends over is blocked following the d-separation rules as we do not observe Eat exotic foods. Thus, the two are independent.
 \end{enumerate}
 
 \newpage
@@ -420,11 +561,15 @@ questions and show your work (i.e., state what the blocking path(s) is/are and w
 % Name and Calibration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection*{Name}
+Ben Ray
 
 \subsection*{Collaborators and Resources}
-Whom did you work with, and did you use any resources beyond cs181-textbook and your notes?
-
+Whom did you work with, and did you use any resources beyond cs181-textbook and your notes?\\
+CS 181 Office Hours\\
+Ty Geri\\
+Josh Michels\\
 \subsection*{Calibration}
-Approximately how long did this homework take you to complete (in hours)? 
+Approximately how long did this homework take you to complete (in hours)?\\
+14
 
 \end{document}
