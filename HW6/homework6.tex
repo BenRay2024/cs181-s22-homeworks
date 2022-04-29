@@ -208,6 +208,63 @@ The policy evaluation/iteration algorithm takes 5 iterations to converge. Changi
 \includegraphics[width=0.5\linewidth]{HW6/plots/2b.4.png}
 \newpage
 
+\textbf{Solution 2(c)}:\\
+\begin{center}
+    \includegraphics[width=0.5\linewidth]{HW6/plots/2c.ct=0.01.png}
+\end{center}
+\begin{center}
+        \begin{tabular}{ |c|c| } 
+        \hline
+        \texttt{ct} & Number of iterations until convergence \\
+        \hline
+        0.01 & 25\\
+        \hline
+        0.001 & 31\\
+        \hline
+        0.0001 & 38\\
+        \hline
+        \end{tabular}
+\end{center}
+
+\textbf{Solution 3}:\\
+Using a convergence tolerance of $0.01$:
+\begin{center}
+        \begin{tabular}{ |c|c|c| } 
+        \hline
+        & Policy iteration & Value iteration \\
+        \hline
+        Number of iterations & 5 & 25\\
+        \hline
+        Time per iteration & 0.682 & 0.467\\
+        \hline
+        Overall runtime & 3.409 & 11.7\\
+        \hline
+        \end{tabular}
+\end{center}
+
+\textbf{Solution 4}:\\
+Converged at iteration 4
+Policy iteration complete.
+Total time: 2.2740695476531982
+Average time per step: 0.4548342704772949
+
+Converged at iteration 5
+Policy iteration complete.
+Total time: 3.6058311462402344
+Average time per step: 0.7212543487548828
+
+Converged at iteration 6
+Policy iteration complete.
+Total time: 6.238354921340942
+Average time per step: 1.2476888656616212
+
+Converged at iteration 6
+Policy iteration complete.
+Total time: 9.72501015663147
+Average time per step: 1.9451001167297364
+
+\textbf{Solution 5}:\\
+
 
 \begin{problem}[Reinforcement Learning, 20 pts]
   In 2013, the mobile game \emph{Flappy Bird} took the world by storm. You'll be developing a Q-learning agent to play a similar game, \emph{Swingy Monkey} (See Figure~\ref{fig:swingy}).  In this game, you control a monkey that is trying to swing on vines and avoid tree trunks.  You can either make him jump to a new vine, or have him swing down on the vine he's currently holding.  You get points for successfully passing tree trunks without hitting them, falling off the bottom of the screen, or jumping off the top.  There are some sources of randomness: the monkey's jumps are sometimes higher than others, the gaps in the trees vary vertically, the gravity varies from game to game, and the distances between the trees are different.  You can play the game directly by pushing a key on the keyboard to make the monkey jump.  However, your objective is to build an agent that \emph{learns} to play on its own. 
