@@ -1,11 +1,11 @@
 # Imports.
 import numpy as np
 import numpy.random as npr
-import matplotlib.pyplot as plt
+from tqdm import tqdm
 import pygame as pg
 
 # uncomment this for animation
-# from SwingyMonkey import SwingyMonkey
+#from SwingyMonkey import SwingyMonkey
 
 # uncomment this for no animation
 from SwingyMonkeyNoAnimation import SwingyMonkey
@@ -26,15 +26,21 @@ class Learner(object):
         self.last_state = None
         self.last_action = None
         self.last_reward = None
+        self.last_y = None
+        self.gravity_updated = False
+        self.gravity = None
 
         # We initialize our Q-value grid that has an entry for each action and state.
         # (action, rel_x, rel_y)
-        self.Q = np.zeros((2, X_SCREEN // X_BINSIZE, Y_SCREEN // Y_BINSIZE))
+        self.Q = np.zeros((2, X_SCREEN // X_BINSIZE, Y_SCREEN // Y_BINSIZE, 2))
 
     def reset(self):
         self.last_state = None
         self.last_action = None
         self.last_reward = None
+        self.last_y == None
+        self.gravity_updated = False
+        self.gravity = None
 
     def discretize_state(self, state):
         """
@@ -63,9 +69,10 @@ class Learner(object):
         gamma = 0.9
 
         # If first step
-        if self.last_action == None or self.last_state == None:
+        if self.last_action == None or self.last_state == None or self.last_y == None:
             self.last_action = 0
             self.last_state = self.discretize_state(state)
+            self.last_y = state["monkey"]["top"]
         else:
             # Discretize state
             s_new = self.discretize_state(state) # s'
@@ -76,10 +83,24 @@ class Learner(object):
             x_last = self.last_state[0]
             y_last = self.last_state[1] 
 
+            # Calculate gravity
+            y = state["monkey"]["top"]
+            if y == self.last_y:
+                return self.last_action
+            if self.gravity == None:
+                self.gravity = y - self.last_y
+                self.gravity_updated = True
+                print(self.gravity)
+                if self.gravity == -1.0:
+                    self.gravity = 0
+                else:
+                    self.gravity = 1
+            g = self.gravity
+
             # Q-Learning update
-            Q_next = [self.Q[0,x_new,y_new], self.Q[1,x_new,y_new]]
+            Q_next = [self.Q[0,x_new,y_new,g], self.Q[1,x_new,y_new,g]]
             a_new = np.argmax(Q_next) # a'
-            self.Q[int(self.last_action),x_last,y_last] += alpha * (self.last_reward + gamma * Q_next[a_new] - self.Q[int(self.last_action),x_last,y_last])
+            self.Q[int(self.last_action),x_last,y_last,g] += alpha * (self.last_reward + gamma * Q_next[a_new] - self.Q[int(self.last_action),x_last,y_last,g])
             
             if npr.rand() < epsilon:
                 new_action = int(npr.rand() < 0.5)
@@ -132,9 +153,6 @@ if __name__ == '__main__':
     # Run games. You can update t_len to be smaller to run it faster.
     run_games(agent, hist, 100, 100)
     print(hist)
-
-    plt.plot(np.arange(100), hist)
-    plt.show()
 
     # Save history. 
     np.save('hist', np.array(hist))
