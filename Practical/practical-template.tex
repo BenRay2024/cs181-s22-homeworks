@@ -3,8 +3,10 @@
 \usepackage{common}
 \usepackage{booktabs}
 \title{Practical: Sample Assignment}
-\author{Names \\ Emails}
-\date{April 1, 2022}
+\author{Ty Geri, Elias Nuwara, Ben Ray \\ tygeri@college.harvard.edu\\
+eliasab@college.harvard.edu\\
+benray@college.harvard.edu}
+\date{April/May, 2022}
 \begin{document}
 
 
@@ -22,29 +24,19 @@ that details the performances of different methods tried, such as one like table
 labeled and captioned figures and/or tables) on the performance of the
 methods you tried compared to your baselines.\\
 
-\begin{table}
-\centering
-\begin{tabular}{llrrr}
- \toprule
- Model &  & Overall Acc (\%) & Class 0 Acc & ... \\
- \midrule
- \textsc{Baseline 1} & & 0.45 & 0.60 & ...\\
- \textsc{Baseline 2} & & 2.59 & 5.00 & ... \\
- \textsc{Model 1} & & 10.59 & 17.54 & ... \\
- \textsc{Model 2} & &13.42 & 16.77 & ... \\
- \textsc{Model 3} & & 7.49 & 9.82 & ... \\
- \bottomrule
-\end{tabular}
-\caption{\label{tab:results} Result tables can compactly illustrate absolute performance, but a plot may be more effective at illustrating a trend.}
-\end{table}
-
-
 \noindent Note that the limit for the report is 4 pages, please prioritize quality over 
 quantity in your submission.\\
 
 \section{Part A: Feature Engineering, Baseline Models}
 
 \subsection{Approach}
+PCA is a method of dimensionality reduction. In summary, it takes the features from the audio clips (our data) and reduces these features into a lower-dimensional basis. It chooses this lower dimensional basis by selecting the eigenvectors corresponding to the largest eigenvalues of the empirical covariance matrix (calculated from the centered data). These eigenvectors are the principal components of the data, which correspond to the directions of largest variance in the features from the audio clips.\\
+
+\noindent We calculate 500 principal components using the training data and use these (the top 500 directions of largest variance in the data) to construct the lower-dimensional representation of our features, using \texttt{PCA.fit\_transform(X\_train)}.\\
+
+\noindent Logistic regression is a supervised probabilistic classification method. This means that we will start with the functional form of a generalized linear model ($\boldy = \boldw^\top \boldx$), convert this to a conditional distribution ($p(\boldy=C_k | \boldx) = \text{softmax}_k(\boldw^\top \boldx)$), and then optimize the weights and parameters of the conditional distribution directly using a maximum likelihood procedure such as gradient descent.
+
+\newpage
 
 What did you do? When relevant, provide mathematical descriptions or pseudocode. Credit will be given for:
 
@@ -55,6 +47,22 @@ What did you do? When relevant, provide mathematical descriptions or pseudocode.
   \end{itemize}
 
 \subsection{Results}
+
+\begin{table}
+\centering
+\begin{tabular}{llrrr}
+ \toprule
+ Model &  & Overall Acc (\%) & Class 0 Acc \\
+ \midrule
+ \textsc{Baseline 1} & & 0.45 & 0.60\\
+ \textsc{Baseline 2} & & 2.59 & 5.00\\
+ \textsc{Model 1} & & 10.59 & 17.54\\
+ \textsc{Model 2} & &13.42 & 16.77\\
+ \textsc{Model 3} & & 7.49 & 9.82\\
+ \bottomrule
+\end{tabular}
+\caption{\label{tab:results} Result tables can compactly illustrate absolute performance, but a plot may be more effective at illustrating a trend.}
+\end{table}
 
 This section should report on the following questions: 
 

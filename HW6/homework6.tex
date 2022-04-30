@@ -22,6 +22,8 @@
 \usepackage{xifthen}
 \usepackage{soul}
 \usepackage{framed}
+\usepackage{xcolor}
+\newcommand{\mathcolorbox}[2]{\colorbox{#1}{$\displaystyle #2$}}
 
 \usepackage[mmddyyyy,hhmmss]{datetime}
 
@@ -120,10 +122,110 @@ $$
     \item Give the complexities for each ordering. Which elimination ordering takes less computation?
 \end{enumerate}
 \end{problem}
+\newpage
 
-\textbf{Solution:}
+\textbf{Solution:}\\
+\textbf{Solution 1:}
+\begin{center}
+\begin{tikzpicture}[
+  node distance=1cm and .5cm,
+  bn/.style={draw,circle,text width=2cm,align=center}
+    ]
+    \node[bn] (w) {\attr{G}};
+    \node[bn,above right=of w] (t) {\attr{S}};
+    \node[bn,above left=of w] (f) {\attr{R}};
+    \path (t) edge[-latex] (w)
+    (f) edge[-latex] (w);
+    \end{tikzpicture}
+\end{center}
 
+\textbf{Solution 2:}\\
+S and R are d-separated by G when G is not observed, i.e. S and R are independent conditional upon not observing G. Therefore, the probability that the sprinkler is on given it is raining (without checking the grass) is given by:
+\begin{align*}
+     \Pr(S = 1 | R = 1) &= \Pr(S = 1)\\
+     &= \mathcolorbox{green}{0.5}
+\end{align*}
 
+\textbf{Solution 3:}\\
+Using Bayes' rule, the probability that the sprinkler is on given the grass is wet (without checking that it is raining) is given by:
+\begin{align*}
+     \Pr(S = 1 | G = 1) &= \frac{\Pr(G = 1 | S = 1) \Pr(S=1)}{\Pr(G=1)}
+\end{align*}
+We can calculate the components of this expression individually.\\
+
+Using the law of total probability by conditioning on the possible states of $R$ and $S$ and noting (from 2) that $R$ and $S$ are d-separated, when $G$ is not observed:
+\begin{align*}
+    \Pr(G=1) &= \Pr(G=1|R=1,S=1)\Pr(R=1)\Pr(S=1)\\ &\quad+ \Pr(G=1|R=0,S=1)\Pr(R=0)\Pr(S=1)\\ &\quad+ \Pr(G=1|R=1,S=0)\Pr(R=1)\Pr(S=0)\\ &\quad+ \Pr(G=1|R=0,S=0)\Pr(R=0)\Pr(S=0)\\
+    &= 1(0.25)(0.5) + (0.75)(0.75)(0.5) + (0.75)(0.25)(0.5) + 0\\
+    &= 0.5
+\end{align*}
+Using the law of total probability by conditioning on the possible states of $R$:
+\begin{align*}
+    \Pr(G=1|S=1) &= \Pr(G=1|S=1,R=1)\Pr(R=1)\\ &\quad+ \Pr(G=1|S=1,R=0)\Pr(R=0)\\
+    &= 1(0.25) + (0.75)(0.75)\\
+    &= \frac{13}{16}
+\end{align*}
+And, using what is already given:
+\begin{align*}
+    \Pr(S=1) = 0.5
+\end{align*}
+Putting this all together, we get that:
+\begin{align*}
+     \Pr(S = 1 | G = 1) &= \frac{\frac{13}{16}\cdot(0.5)}{0.5} = \frac{13}{16} = \mathcolorbox{green}{0.8125}
+\end{align*}
+
+\textbf{Solution 4:}\\
+Using simple rules of conditional probability, the probability that the sprinkler is on given the grass is wet and given that it is raining is:
+\begin{align*}
+     \Pr(S = 1 | R = 1, G = 1) &= \frac{\Pr(G = 1, R = 1, S = 1)}{\Pr(R=1,G=1)}\\
+     &= \frac{\Pr(G = 1| R = 1, S = 1)\Pr(R=1)\Pr(S=1)}{\Pr(R=1,G=1,S=1) + \Pr(R=1,G=1, S=0)}\\
+     &= \frac{\Pr(G = 1| R = 1, S = 1)\Pr(R=1)\Pr(S=1)}{\Pr(R=1)\Pr(S=1)\Pr(G=1|R=1,S=1) + \Pr(R=1)\Pr(S=0)\Pr(G=1|R=1,S=0)}
+\end{align*}
+which has been simplified using the law of total probability in the denominator by conditioning on the possible states of $S$ and noting (from 2) that $R$ and $S$ are d-separated, when $G$ is not observed.
+
+\begin{align*}
+     \therefore \Pr(S = 1 | R = 1, G = 1) &= \frac{(0.25)(0.5)(1)}{(0.25)(0.5)(1)+(0.25)(0.5)(0.75)}\\
+     &= \frac{4}{7} \approx \mathcolorbox{green}{0.571}
+\end{align*}
+
+\textbf{Solution 5:}\\
+Noticing that the probability calculated in 4 is lower than the probability calculated in 3, we can conclude that observing there being rain ``explains away" the effect of the sprinkler on the grass. In other words, having observed that the grass is wet and that it is raining, it makes it less likely that the grass was made wet by the sprinkler too, than had we just observed the grass being wet.\\
+
+Note, that this explaining away effect at $G$ only occurs because we observe $G$ in both cases, thereby unblocking the path between $R$ and $S$, meaning they are no longer independent, so knowing either of $R$ or $S$ changes the amount we expected the other of $R$ or $S$ to contribute to $G$ - exactly the ``explaining away" effect.
+\newpage
+
+\textbf{Solution 6:}\\
+\begin{align*}
+    \Pr(R) &= \sum_C \sum_G \sum_S \Pr(C,R,G,S)\\
+    &= \sum_C \sum_G \sum_S \Pr(C)\Pr(R|C)\Pr(S|C)\Pr(G | R, S)\\
+    &= \mathcolorbox{green}{\sum_C \Pr(C)\Pr(R|C) \sum_G \sum_S \Pr(S|C)\Pr(G | R, S)}\\
+    &= \sum_C \Pr(C)\Pr(R|C) \sum_G \sum_S \psi_1(G,C,R,S)\\
+    &= \sum_C \Pr(C)\Pr(R|C) \sum_G \psi_2(G,C,R)\\
+    &= \sum_C \psi_3(C,R)\\
+    &= \Pr(R)
+\end{align*}
+
+\textbf{Solution 7:}\\
+\begin{align*}
+    \Pr(R) &= \sum_S \sum_G \sum_C \Pr(C,R,G,S)\\
+    &= \sum_S \sum_G \sum_C \Pr(C)\Pr(R|C)\Pr(S|C)\Pr(G | R, S)\\
+    &= \mathcolorbox{green}{\sum_S \sum_G \Pr(G | R, S) \sum_C \Pr(C)\Pr(R|C)\Pr(S|C)}\\
+    &= \sum_S \sum_G \Pr(G | R, S) \sum_C \psi_1(C,R,S)\\
+    &= \sum_S \sum_G \psi_2(G,R,S)\\
+    &= \sum_S \psi_3(R,S)\\
+    &= \Pr(R)
+\end{align*}
+
+\textbf{Solution 8:}\\
+In question 6, we see that the variable elimination involves summing over a $k^4$ sized object $\psi_1(G,C,R,S)$, followed by a $k^3$ sized object $\psi_2(G,C,R)$, followed by a $k^2$ sized object $\psi_3(C,R)$. Therefore, the variable elimination ordering $S,G,C$ has time complexity:
+$$O(k^4)+O(k^3)+O(k^2) = \mathcolorbox{green}{O(k^4)}$$
+
+In question 7, we see that the variable elimination involves summing over a $k^3$ sized object $\psi_1(C,R,S)$, followed by a $k^3$ sized object $\psi_2(G,R,S)$, followed by a $k^2$ sized object $\psi_3(R,S)$. Therefore, the variable elimination ordering $C,G,S$ has time complexity:
+$$O(k^3)+O(k^3)+O(k^2) = \mathcolorbox{green}{O(k^3)}$$
+
+Therefore, the variable elimination ordering $C,G,S$ takes less computation.
+
+\newpage
 
 
 \begin{problem}[Policy and Value Iteration, 15 pts]
@@ -198,7 +300,7 @@ Note that we are doing infinite-horizon planning to maximize the expected reward
 \begin{center}
     \includegraphics[width=0.5\linewidth]{HW6/plots/1d.ct=0.01.png}
 \end{center}
-The policy evaluation/iteration algorithm takes 5 iterations to converge. Changing the value of \texttt{ct} does not change the number of iterations until convergence. This is intuitive because policy evaluation/iteration should converge to the optimal policy exactly when it converges. 
+The policy evaluation/iteration algorithm takes 5 iterations to converge. Changing the value of \texttt{ct} does not change the number of iterations until convergence, i.e. it remains at 5. This is intuitive because policy evaluation/iteration should converge to the optimal policy exactly when it converges. 
 \newpage
 
 \textbf{Solution 2(b)}:\\
@@ -225,6 +327,7 @@ The policy evaluation/iteration algorithm takes 5 iterations to converge. Changi
         \hline
         \end{tabular}
 \end{center}
+Decreasing the value of \texttt{ct} increases the number of iterations until convergence. This is intuitive because value iteration does not converge exactly, so decreasing the convergence threshold makes it more difficult to achieve the level of accuracy required to converge, and requires more iterations.\\
 
 \textbf{Solution 3}:\\
 Using a convergence tolerance of $0.01$:
@@ -235,36 +338,58 @@ Using a convergence tolerance of $0.01$:
         \hline
         Number of iterations & 5 & 25\\
         \hline
-        Time per iteration & 0.682 & 0.467\\
+        Time per iteration & 0.682 & 0.260\\
         \hline
-        Overall runtime & 3.409 & 11.7\\
+        Overall runtime & 3.41 & 6.49\\
         \hline
         \end{tabular}
 \end{center}
+Policy iteration takes less iterations to converge and takes less time per iteration but takes more time overall to run, when compared to value iteration. This is intuitive, since policy iteration has runtime of $O(|S||A|L + |S|^3)$ per step, and value iteration has runtime of $O(|S||A|L)$ per step, where $|S|$ is defined as the number of states in the world, $|A|$ is defined as the number of possible actions, and $L$ is defined as the maximum number of states reachable from any states through any action. However, policy iteration converges faster overall as it converges exactly and does not need to spend time, unlike value iteration, improving the accuracy of the value function up to the second decimal place, until it reaches the convergence threshold. Thus, value iteration ends up taking many more, albeit shorter iterations, which end up taking longer overall than policy iteration's few, slower iterations.
+\newpage
 
 \textbf{Solution 4}:\\
-Converged at iteration 4
-Policy iteration complete.
-Total time: 2.2740695476531982
-Average time per step: 0.4548342704772949
+Using a convergence tolerance of $0.01$:
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{HW6/plots/2.4.g=0.6.png}
+    \caption{\texttt{$\gamma$ = 0.6}}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{HW6/plots/2.4.g=0.7.png}
+    \caption{\texttt{$\gamma$ = 0.7}}
+\end{figure}
+\newpage
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{HW6/plots/2.4.g=0.8.png}
+    \caption{\texttt{$\gamma$ = 0.8}}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{HW6/plots/2.4.g=0.9.png}
+    \caption{\texttt{$\gamma$ = 0.9}}
+\end{figure}
 
-Converged at iteration 5
-Policy iteration complete.
-Total time: 3.6058311462402344
-Average time per step: 0.7212543487548828
-
-Converged at iteration 6
-Policy iteration complete.
-Total time: 6.238354921340942
-Average time per step: 1.2476888656616212
-
-Converged at iteration 6
-Policy iteration complete.
-Total time: 9.72501015663147
-Average time per step: 1.9451001167297364
+\begin{center}
+        \begin{tabular}{ |c|c|c| } 
+        \hline
+        \texttt{$\gamma$} & Policy iteration runtime & Value iteration runtime \\
+        \hline
+        0.6 & 2.27 & 4.78\\
+        \hline
+        0.7 & 3.41 & 6.49\\
+        \hline
+        0.8 & 6.24 & 10.4\\
+        \hline
+        0.9 & 9.73 & 21.6\\
+        \hline
+        \end{tabular}
+\end{center}
+Increasing the magnitude of $\gamma$ decreases the amount of discounting on rewards from future states. Thus, it makes sense for policies to travel further in order to collect more rewards in the future, and the agent travels for more time. This is the case for both value and policy iteration, so the overall runtime increases for both algorithms as $\gamma$ increases.\\
 
 \textbf{Solution 5}:\\
-
+Larger values of $\gamma$ increase the value of future rewards as the level of discounting decreases. Thus, as $\gamma$ tends towards 1, policies will recommend longer paths, as it becomes worthwhile travelling the long path from the start to the grid-square with the highest reward (R=50). Meanwhile, lower values of $\gamma$ decrease the value of future rewards as the level of discounting increases. Thus, policies will take shorter paths, given lower values of $\gamma$, e.g. to the grid-square with R=4, as it is not worth travelling further to only get the heavily discounted R=50 in the future.
 
 \begin{problem}[Reinforcement Learning, 20 pts]
   In 2013, the mobile game \emph{Flappy Bird} took the world by storm. You'll be developing a Q-learning agent to play a similar game, \emph{Swingy Monkey} (See Figure~\ref{fig:swingy}).  In this game, you control a monkey that is trying to swing on vines and avoid tree trunks.  You can either make him jump to a new vine, or have him swing down on the vine he's currently holding.  You get points for successfully passing tree trunks without hitting them, falling off the bottom of the screen, or jumping off the top.  There are some sources of randomness: the monkey's jumps are sometimes higher than others, the gaps in the trees vary vertically, the gravity varies from game to game, and the distances between the trees are different.  You can play the game directly by pushing a key on the keyboard to make the monkey jump.  However, your objective is to build an agent that \emph{learns} to play on its own. 
@@ -312,7 +437,36 @@ discount rate $\gamma$, and exploration rate $\epsilon$. \emph{Do not use outsid
     \caption{(a) Screenshot of the Swingy Monkey game.  (b) Interpretations of various pieces of the state dictionary.}
 \end{figure}
     
-\textbf{Solution:}
+\textbf{Solution:}\\
+I implemented Q-learning with an $\epsilon$-greedy policy in \texttt{stub.py} and then sought to improve performance by inferring gravity at each epoch in \texttt{stub\_grav.py}. The results were not as straightforward as may have been expected - inferring gravity did not improve results on all of the test metrics I discuss below.
+
+\textit{\textbf{Implementation}}: In order to begin the Q-learning algorithm, we must have a tuple of the first (state, action, reward). By default, the monkey was initialized to not jump (action 0) from its starting state. Then, beginning with the second state, the monkey followed an $\epsilon$-greedy policy, taking a random next action with probability $\epsilon$ (exploring) and taking a greedy next action with probability $1 - \epsilon$ (exploiting, by taking the next action that maximized the Q-function). Regardless of this choice, the Q-function would be updated according to the update equation:
+$$Q(s,a) \leftarrow Q(s,a) + \alpha[R(s,a) + \gamma \max_{a'} Q(s',a') - Q(s,a)] $$
+where $Q(s,a)$ is the current value of the Q-function at state $s$ and taking action $a$ - $Q(s,a)$ starts by being initialized to 0 $\forall\, (s,a)$; $\alpha$ is the learning rate; $R(s,a)$ is the reward at state $s$ and taking action $a$; $\gamma$ is the discount rate on the value of future states and actions.
+
+The only key difference between \texttt{stub.py} and \texttt{stub\_grav.py}, is that, in the former, $s$ is a tuple of $(x,y)$ - the discretized coordinates of the monkey - whilst, in the latter, $s$ is a tuple of $(x,y,g)$ - the discretized coordinates of the monkey and the level of gravity $g$ in the game. $g$ was calculated by finding the difference in the actual (not discretized) y-coordinate of the monkey between the first two states. In turned out that there were only two possible levels of gravity in the game, which I will refer to as ``low gravity" and ``high gravity". Intuitively, the monkey fell further between state 0 and state 1 in ``high gravity" games.
+
+The theory behind inferring gravity was that the monkey would have a larger Q-table, from which it could learn about the different value of states and actions in low gravity and high gravity games, and thereby better optimize its policy.
+
+\textit{\textbf{Results}}:
+Using both \texttt{stub.py} and \texttt{stub\_grav.py}, I ran the game once (100 epochs) for several different values of the hyperparameters $\alpha$, $\gamma$, and $\epsilon$. I discovered that the values $\epsilon = 0.0001$, $\alpha = 0.1$, and $\gamma = 0.9$ produced the best scores.
+
+In order to test the difference between \texttt{stub.py} and \texttt{stub\_grav.py} using the optimal parameters, I ran the game 50 times (100 epochs each time), and calculated the following metrics to demonstrate performance:
+\begin{center}
+    \begin{tabular}{ |c|c|c| } 
+        \hline
+        50 iterations & \texttt{stub.py} & \texttt{stub\_grav.py} \\
+        \hline
+        Average score across all epochs in all iterations & \mathcolorbox{green}{48.60} & 37.37\\
+        \hline
+        Max score across all epochs in all iterations & \mathcolorbox{green}{1416} & 1366\\
+        \hline
+        Average of max score in each iteration & \mathcolorbox{green}{753.28} & 652.98\\
+        \hline
+        Variance of max score in each iteration & 86258.12 & \mathcolorbox{green}{82978.98}\\
+        \hline
+    \end{tabular}
+\end{center}
 
 \newpage
 \newpage
@@ -321,8 +475,15 @@ discount rate $\gamma$, and exploration rate $\epsilon$. \emph{Do not use outsid
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \subsection*{Name}
+Ben Ray
+
 \subsection*{Collaborators and Resources}
-Whom did you work with, and did you use any resources beyond cs181-textbook and your notes?
+Whom did you work with, and did you use any resources beyond cs181-textbook and your notes?\\
+Ty Geri\\
+CS 181 OHs\\
+
 \subsection*{Calibration}
-Approximately how long did this homework take you to complete (in hours)? 
+Approximately how long did this homework take you to complete (in hours)?
+14
+
 \end{document}
