@@ -67,7 +67,7 @@ class Learner(object):
         
         epsilon = 0.0001
         alpha = 0.1
-        gamma = 0.9
+        gamma = 0.8
 
         # If first step
         if self.last_action == None or self.last_state == None or self.last_y == None:
@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
     max_hist = []
     av_hist = []
-    epochs = 50
+    epochs = 1
 
     for _ in tqdm(range(epochs)):
         # Select agent.
@@ -169,38 +169,38 @@ if __name__ == '__main__':
         av_hist.append(sum(hist)/len(hist))
         gravities = agent.get_gravities()
 
-    low = 0
-    low_count = 0
-    high = 0
-    high_count = 0
-    for i, g in enumerate(gravities):
-        if g == 0:
-            low += hist[i]
-            low_count += 1
-        else:
-            high += hist[i]
-            high_count +=1
-    print(f"Low g games: " + str(low_count))
-    print(low/len(gravities))
-    print(f"High g games: " + str(high_count))
-    print(high/len(gravities))
+    # low = 0
+    # low_count = 0
+    # high = 0
+    # high_count = 0
+    # for i, g in enumerate(gravities):
+    #     if g == 0:
+    #         low += hist[i]
+    #         low_count += 1
+    #     else:
+    #         high += hist[i]
+    #         high_count +=1
+    # print(f"Low g games: " + str(low_count))
+    # print(low/len(gravities))
+    # print(f"High g games: " + str(high_count))
+    # print(high/len(gravities))
 
-    print(f"Var max scores (not learning g): " + str(np.var(max_hist)))
-    print(f"Var max scores (learning g): " + str(np.var(grav_max_hist)))
+    # print(f"Var max scores (not learning g): " + str(np.var(max_hist)))
+    # print(f"Var max scores (learning g): " + str(np.var(grav_max_hist)))
 
     print(f"Max scores (not learning g): (" + str(sum(max_hist)/len(max_hist)) + ") " + str(max_hist))
     print(f"Max scores (learning g): (" + str(sum(grav_max_hist)/len(max_hist)) + ") " + str(grav_max_hist))
-    plt.plot(np.arange(epochs), max_hist, label="does not learn gravity")
-    plt.plot(np.arange(epochs), grav_max_hist, label="learns gravity")
-    plt.legend()
-    plt.show()
+    # plt.plot(np.arange(epochs), max_hist, label="does not learn gravity")
+    # plt.plot(np.arange(epochs), grav_max_hist, label="learns gravity")
+    # plt.legend()
+    # plt.show()
 
     print(f"Avg scores (not learning g): (" + str(sum(av_hist)/len(av_hist)) + ") " + str(av_hist))
     print(f"Avg scores (learning g): (" + str(sum(grav_av_hist)/len(av_hist)) + ") " + str(grav_av_hist))
-    plt.plot(np.arange(epochs), av_hist, label="does not learn gravity")
-    plt.plot(np.arange(epochs), grav_av_hist, label="learns gravity")
-    plt.legend()
-    plt.show()
+    # plt.plot(np.arange(epochs), av_hist, label="does not learn gravity")
+    # plt.plot(np.arange(epochs), grav_av_hist, label="learns gravity")
+    # plt.legend()
+    # plt.show()
 
     # # Save history. 
     # np.save('hist', np.array(hist))
