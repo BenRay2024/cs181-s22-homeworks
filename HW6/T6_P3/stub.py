@@ -3,6 +3,7 @@ import numpy as np
 import numpy.random as npr
 import matplotlib.pyplot as plt
 import pygame as pg
+from tqdm import tqdm
 
 # uncomment this for animation
 # from SwingyMonkey import SwingyMonkey
@@ -26,6 +27,10 @@ class Learner(object):
         self.last_state = None
         self.last_action = None
         self.last_reward = None
+        self.last_y = None
+        self.gravity_updated = False
+        self.gravity = None
+        self.gravities = []
 
         # We initialize our Q-value grid that has an entry for each action and state.
         # (action, rel_x, rel_y)
@@ -35,6 +40,8 @@ class Learner(object):
         self.last_state = None
         self.last_action = None
         self.last_reward = None
+        self.gravity_updated = False
+        self.gravity = None
 
     def discretize_state(self, state):
         """
@@ -63,9 +70,10 @@ class Learner(object):
         gamma = 0.9
 
         # If first step
-        if self.last_action == None or self.last_state == None:
+        if self.last_action == None or self.last_state == None or self.last_y == None:
             self.last_action = 0
             self.last_state = self.discretize_state(state)
+            self.last_y = state["monkey"]["top"]
         else:
             # Discretize state
             s_new = self.discretize_state(state) # s'
@@ -74,7 +82,22 @@ class Learner(object):
 
             # s
             x_last = self.last_state[0]
-            y_last = self.last_state[1] 
+            y_last = self.last_state[1]
+
+            # Calculate gravity (for reference only)
+            y = state["monkey"]["top"]
+            if y == self.last_y:
+                return self.last_action
+            if self.gravity == None:
+                self.gravity = y - self.last_y
+                self.gravity_updated = True
+                if self.gravity == -1.0:
+                    self.gravity = 0
+                elif self.gravity == -4.0:
+                    self.gravity = 1
+                else:
+                    self.gravity = None
+                self.gravities.append(self.gravity)
 
             # Q-Learning update
             Q_next = [self.Q[0,x_new,y_new], self.Q[1,x_new,y_new]]
@@ -95,6 +118,9 @@ class Learner(object):
         """This gets called so you can see what reward you get."""
 
         self.last_reward = reward
+    
+    def get_gravities(self):
+        return np.array(self.gravities)
 
 
 def run_games(learner, hist, iters=100, t_len=100):
@@ -123,18 +149,58 @@ def run_games(learner, hist, iters=100, t_len=100):
 
 
 if __name__ == '__main__':
-    # Select agent.
-    agent = Learner()
+    grav_max_hist = np.load("grav_max_hist.npy")
+    grav_av_hist = np.load("grav_av_hist.npy")
 
-    # Empty list to save history.
-    hist = []
+    max_hist = []
+    av_hist = []
+    epochs = 50
 
-    # Run games. You can update t_len to be smaller to run it faster.
-    run_games(agent, hist, 100, 100)
-    print(hist)
+    for _ in tqdm(range(epochs)):
+        # Select agent.
+        agent = Learner()
 
-    plt.plot(np.arange(100), hist)
+        # Empty list to save history.
+        hist = []
+
+        # Run games. You can update t_len to be smaller to run it faster.
+        run_games(agent, hist, 100, 100)
+        max_hist.append(max(hist))
+        av_hist.append(sum(hist)/len(hist))
+        gravities = agent.get_gravities()
+
+    low = 0
+    low_count = 0
+    high = 0
+    high_count = 0
+    for i, g in enumerate(gravities):
+        if g == 0:
+            low += hist[i]
+            low_count += 1
+        else:
+            high += hist[i]
+            high_count +=1
+    print(f"Low g games: " + str(low_count))
+    print(low/len(gravities))
+    print(f"High g games: " + str(high_count))
+    print(high/len(gravities))
+
+    print(f"Var max scores (not learning g): " + str(np.var(max_hist)))
+    print(f"Var max scores (learning g): " + str(np.var(grav_max_hist)))
+
+    print(f"Max scores (not learning g): (" + str(sum(max_hist)/len(max_hist)) + ") " + str(max_hist))
+    print(f"Max scores (learning g): (" + str(sum(grav_max_hist)/len(max_hist)) + ") " + str(grav_max_hist))
+    plt.plot(np.arange(epochs), max_hist, label="does not learn gravity")
+    plt.plot(np.arange(epochs), grav_max_hist, label="learns gravity")
+    plt.legend()
     plt.show()
 
-    # Save history. 
-    np.save('hist', np.array(hist))
+    print(f"Avg scores (not learning g): (" + str(sum(av_hist)/len(av_hist)) + ") " + str(av_hist))
+    print(f"Avg scores (learning g): (" + str(sum(grav_av_hist)/len(av_hist)) + ") " + str(grav_av_hist))
+    plt.plot(np.arange(epochs), av_hist, label="does not learn gravity")
+    plt.plot(np.arange(epochs), grav_av_hist, label="learns gravity")
+    plt.legend()
+    plt.show()
+
+    # # Save history. 
+    # np.save('hist', np.array(hist))

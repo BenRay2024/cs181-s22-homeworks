@@ -1,8 +1,9 @@
 # Imports.
 import numpy as np
 import numpy.random as npr
-from tqdm import tqdm
+import matplotlib.pyplot as plt
 import pygame as pg
+from tqdm import tqdm
 
 # uncomment this for animation
 #from SwingyMonkey import SwingyMonkey
@@ -29,6 +30,7 @@ class Learner(object):
         self.last_y = None
         self.gravity_updated = False
         self.gravity = None
+        self.gravities = []
 
         # We initialize our Q-value grid that has an entry for each action and state.
         # (action, rel_x, rel_y)
@@ -90,14 +92,16 @@ class Learner(object):
             if self.gravity == None:
                 self.gravity = y - self.last_y
                 self.gravity_updated = True
-                print(self.gravity)
                 if self.gravity == -1.0:
                     self.gravity = 0
-                else:
+                elif self.gravity == -4.0:
                     self.gravity = 1
+                else:
+                    self.gravity = None
+                self.gravities.append(self.gravity)
             g = self.gravity
 
-            # Q-Learning update
+            # Q-Learning update (using gravity)
             Q_next = [self.Q[0,x_new,y_new,g], self.Q[1,x_new,y_new,g]]
             a_new = np.argmax(Q_next) # a'
             self.Q[int(self.last_action),x_last,y_last,g] += alpha * (self.last_reward + gamma * Q_next[a_new] - self.Q[int(self.last_action),x_last,y_last,g])
@@ -116,7 +120,10 @@ class Learner(object):
         """This gets called so you can see what reward you get."""
 
         self.last_reward = reward
-
+    
+    def get_gravities(self):
+        return np.array(self.gravities)
+    
 
 def run_games(learner, hist, iters=100, t_len=100):
     """
@@ -144,15 +151,52 @@ def run_games(learner, hist, iters=100, t_len=100):
 
 
 if __name__ == '__main__':
-    # Select agent.
-    agent = Learner()
+    
+    max_hist = []
+    av_hist = []
+    gravities = []
+    epochs = 50
 
-    # Empty list to save history.
-    hist = []
+    for _ in tqdm(range(epochs)):
+        # Select agent.
+        agent = Learner()
 
-    # Run games. You can update t_len to be smaller to run it faster.
-    run_games(agent, hist, 100, 100)
-    print(hist)
+        # Empty list to save history.
+        hist = []
+
+        # Run games. You can update t_len to be smaller to run it faster.
+        run_games(agent, hist, 100, 100)
+        max_hist.append(max(hist))
+        av_hist.append(sum(hist)/len(hist))
+        gravities = agent.get_gravities()
+
+    low = 0
+    low_count = 0
+    high = 0
+    high_count = 0
+    for i, g in enumerate(gravities):
+        if g == 0:
+            low += hist[i]
+            low_count += 1
+        else:
+            high += hist[i]
+            high_count +=1
+    print(f"Low g games: " + str(low_count))
+    print(low/len(gravities))
+    print(f"High g games: " + str(high_count))
+    print(high/len(gravities))
+        
+    # colormap = np.array(['r', 'g', 'b'])
+    # plt.plot(np.arange(epochs), max_hist, c=colormap[gravities])
+
+    print(f"Max scores: " + str(max_hist))
+    plt.plot(np.arange(epochs), max_hist)
+    plt.show()
+
+    print(f"Average scores: " + str(av_hist))
+    plt.plot(np.arange(epochs), av_hist)
+    plt.show()
 
     # Save history. 
-    np.save('hist', np.array(hist))
+    np.save('grav_max_hist', np.array(max_hist))
+    np.save('grav_av_hist', np.array(av_hist))
