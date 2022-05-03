@@ -22,6 +22,7 @@
 \usepackage{xifthen}
 \usepackage{soul}
 \usepackage{framed}
+\usepackage{pythonhighlight}
 \usepackage{xcolor}
 \newcommand{\mathcolorbox}[2]{\colorbox{#1}{$\displaystyle #2$}}
 
@@ -289,6 +290,52 @@ Note that we are doing infinite-horizon planning to maximize the expected reward
 
 \newpage
 \textbf{Solution:}\\
+\textbf{Solution 1(a)}:\\
+\begin{python}
+    def policy_evaluation(pi, gamma):
+    theta = 0.0001
+    V_0 = np.zeros(num_states)
+    V = np.zeros(num_states)
+    
+    while True:
+        V_0 = np.array(V)
+        for state in range(num_states):
+            current_reward = get_reward(state)
+            expected_reward = 0
+            for next_state in range(num_states):
+                expected_reward += gamma * get_transition_prob(state, pi[state], next_state) * V_0[next_state]
+            V[state] = current_reward + expected_reward
+
+        if max(abs(V - V_0)) < theta:
+            break
+
+    return V
+\end{python}
+
+\textbf{Solution 1(b)}:\\
+\begin{python}
+    def update_policy_iteration(V, gamma):
+    pi_new = np.zeros(num_states)
+
+    for state in range(num_states):
+        max_val = get_reward(state)
+        for next_state in range(num_states):
+            max_val += gamma * get_transition_prob(state, 0, next_state) * V[next_state]
+        
+        for action in range(1,num_actions):
+            current_reward = get_reward(state)
+            expected_reward = 0
+            for next_state in range(num_states):
+                expected_reward += gamma * get_transition_prob(state, action, next_state) * V[next_state]
+            new_val = current_reward + expected_reward
+            if new_val > max_val and pi_new[state] != action:
+                pi_new[state] = action
+                max_val = new_val
+
+    return pi_new
+\end{python}
+\newpage
+
 \textbf{Solution 1(c)}:\\
 \includegraphics[width=0.5\linewidth]{HW6/plots/1c.1.png}
 \includegraphics[width=0.5\linewidth]{HW6/plots/1c.2.png}
@@ -300,7 +347,30 @@ Note that we are doing infinite-horizon planning to maximize the expected reward
 \begin{center}
     \includegraphics[width=0.5\linewidth]{HW6/plots/1d.ct=0.01.png}
 \end{center}
-The policy evaluation/iteration algorithm takes 5 iterations to converge. Changing the value of \texttt{ct} does not change the number of iterations until convergence, i.e. it remains at 5. This is intuitive because policy evaluation/iteration should converge to the optimal policy exactly when it converges. 
+The policy evaluation/iteration algorithm takes 5 iterations to converge. Changing the value of \texttt{ct} does not change the number of iterations until convergence, i.e. it remains at 5. This is intuitive because policy evaluation/iteration should converge to the optimal policy exactly when it converges.
+\bigskip
+
+\textbf{Solution 2(a)}:\\
+\begin{python}
+    def update_value_iteration(V, pi, gamma):
+    V_new = np.zeros(num_states)
+    pi_new = np.zeros(num_states)
+
+    for state in range(num_states):
+        max_val = -99999999999999
+        for action in range(0,num_actions):
+            current_reward = get_reward(state)
+            expected_reward = 0
+            for next_state in range(num_states):
+                expected_reward += gamma * get_transition_prob(state, action, next_state) * V[next_state]
+            new_val = current_reward + expected_reward
+            if new_val > max_val:
+                max_val = new_val
+                V_new[state] = max_val
+                pi_new[state] = action
+
+    return V_new, pi_new
+\end{python}
 \newpage
 
 \textbf{Solution 2(b)}:\\
@@ -386,7 +456,7 @@ Using a convergence tolerance of $0.01$:
         \hline
         \end{tabular}
 \end{center}
-Increasing the magnitude of $\gamma$ decreases the amount of discounting on rewards from future states. Thus, it makes sense for policies to travel further in order to collect more rewards in the future, and the agent travels for more time. This is the case for both value and policy iteration, so the overall runtime increases for both algorithms as $\gamma$ increases.\\
+Decreasing the magnitude of $\gamma$ increases the amount of discounting on rewards from future states, so the absolute value of rewards in future states become smaller. Thus, our optimal policy and value function converge faster, since the effect of future states becomes smaller. This is the case for both value and policy iteration, so the overall runtime increases for both algorithms as $\gamma$ increases.\\
 
 \textbf{Solution 5}:\\
 Larger values of $\gamma$ increase the value of future rewards as the level of discounting decreases. Thus, as $\gamma$ tends towards 1, policies will recommend longer paths, as it becomes worthwhile travelling the long path from the start to the grid-square with the highest reward (R=50). Meanwhile, lower values of $\gamma$ decrease the value of future rewards as the level of discounting increases. Thus, policies will take shorter paths, given lower values of $\gamma$, e.g. to the grid-square with R=4, as it is not worth travelling further to only get the heavily discounted R=50 in the future.
@@ -438,24 +508,71 @@ discount rate $\gamma$, and exploration rate $\epsilon$. \emph{Do not use outsid
 \end{figure}
     
 \textbf{Solution:}\\
-I implemented Q-learning with an $\epsilon$-greedy policy in \texttt{stub.py} and then sought to improve performance by inferring gravity at each epoch in \texttt{stub\_grav.py}. The results were not as straightforward as may have been expected - inferring gravity did not improve results on all of the test metrics I discuss below.
+I implemented Q-learning with an $\epsilon$-greedy policy in \texttt{stub.py} and then sought to improve performance by inferring gravity at each epoch in \texttt{stub\_grav.py}. The results were not as straightforward as may have been expected - inferring gravity did not improve results on all of the test metrics I discuss below.\\
 
-\textit{\textbf{Implementation}}: In order to begin the Q-learning algorithm, we must have a tuple of the first (state, action, reward). By default, the monkey was initialized to not jump (action 0) from its starting state. Then, beginning with the second state, the monkey followed an $\epsilon$-greedy policy, taking a random next action with probability $\epsilon$ (exploring) and taking a greedy next action with probability $1 - \epsilon$ (exploiting, by taking the next action that maximized the Q-function). Regardless of this choice, the Q-function would be updated according to the update equation:
+\textit{\textbf{Implementation}}:
+In order to begin the Q-learning algorithm, we must have a tuple of the first (state, action, reward). By default, the monkey was initialized to not jump (action 0) from its starting state. Then, beginning with the second state, the monkey followed an $\epsilon$-greedy policy, taking a random next action with probability $\epsilon$ (exploring) and taking a greedy next action with probability $1 - \epsilon$ (exploiting, by taking the next action that maximized the Q-function). Regardless of this choice, the Q-function would be updated according to the update equation:
 $$Q(s,a) \leftarrow Q(s,a) + \alpha[R(s,a) + \gamma \max_{a'} Q(s',a') - Q(s,a)] $$
 where $Q(s,a)$ is the current value of the Q-function at state $s$ and taking action $a$ - $Q(s,a)$ starts by being initialized to 0 $\forall\, (s,a)$; $\alpha$ is the learning rate; $R(s,a)$ is the reward at state $s$ and taking action $a$; $\gamma$ is the discount rate on the value of future states and actions.
 
 The only key difference between \texttt{stub.py} and \texttt{stub\_grav.py}, is that, in the former, $s$ is a tuple of $(x,y)$ - the discretized coordinates of the monkey - whilst, in the latter, $s$ is a tuple of $(x,y,g)$ - the discretized coordinates of the monkey and the level of gravity $g$ in the game. $g$ was calculated by finding the difference in the actual (not discretized) y-coordinate of the monkey between the first two states. In turned out that there were only two possible levels of gravity in the game, which I will refer to as ``low gravity" and ``high gravity". Intuitively, the monkey fell further between state 0 and state 1 in ``high gravity" games.
 
-The theory behind inferring gravity was that the monkey would have a larger Q-table, from which it could learn about the different value of states and actions in low gravity and high gravity games, and thereby better optimize its policy.
+The theory behind inferring gravity was that the monkey would have a larger Q-table, from which it could learn about the different value of states and actions in low gravity and high gravity games, and thereby better optimize its policy.\\
+
+\begin{center}
+    PTO!
+\end{center}
+\newpage
 
 \textit{\textbf{Results}}:
-Using both \texttt{stub.py} and \texttt{stub\_grav.py}, I ran the game once (100 epochs) for several different values of the hyperparameters $\alpha$, $\gamma$, and $\epsilon$. I discovered that the values $\epsilon = 0.0001$, $\alpha = 0.1$, and $\gamma = 0.9$ produced the best scores.
-
-In order to test the difference between \texttt{stub.py} and \texttt{stub\_grav.py} using the optimal parameters, I ran the game 50 times (100 epochs each time), and calculated the following metrics to demonstrate performance:
+Using \texttt{stub.py}, I ran the game once (100 epochs) for 3 different values of each of the hyperparameters $\alpha$, $\gamma$, and $\epsilon$. The results were as follows (note, I do not show all 27 combinations of the hyperparameters I tried, just enough to show variation by changing each one):
 \begin{center}
     \begin{tabular}{ |c|c|c| } 
         \hline
-        50 iterations & \texttt{stub.py} & \texttt{stub\_grav.py} \\
+        1 iteration (100 epochs) & Average score across all epochs & Max score across all epochs \\
+        \hline
+        $\epsilon = 0.01$ ($\alpha = 0.1$, $\gamma = 0.9$) & 13.14 & 232\\
+        \hline
+        $\epsilon = 0.001$ ($\alpha = 0.1$, $\gamma = 0.9$) & 37.46 & 498\\
+        \hline
+        $\epsilon = 0.0001$ ($\alpha = 0.1$, $\gamma = 0.9$) & \mathcolorbox{green}{46.38} & \mathcolorbox{green}{521}\\
+        \hline
+    \end{tabular}
+\end{center}
+\begin{center}
+    \begin{tabular}{ |c|c|c| } 
+        \hline
+        1 iteration (100 epochs) & Average score across all epochs & Max score across all epochs \\
+        \hline
+        $\alpha = 0.05$ ($\epsilon = 0.0001$, $\gamma = 0.9$) & 38.28 & 408\\
+        \hline
+        $\alpha = 0.1$ ($\epsilon = 0.0001$, $\gamma = 0.9$) & \mathcolorbox{green}{46.38} & \mathcolorbox{green}{521}\\
+        \hline
+        $\alpha = 0.2$ ($\epsilon = 0.0001$, $\gamma = 0.9$) & 33.00 & 512\\
+        \hline
+    \end{tabular}
+\end{center}
+\begin{center}
+    \begin{tabular}{ |c|c|c| } 
+        \hline
+        1 iteration (100 epochs) & Average score across all epochs & Max score across all epochs \\
+        \hline
+        $\gamma = 0.8$ ($\alpha = 0.1$, $\epsilon = 0.0001$) & 39.9 & 501\\
+        \hline
+        $\gamma = 0.9$ ($\alpha = 0.1$, $\epsilon = 0.0001$) & \mathcolorbox{green}{46.38} & \mathcolorbox{green}{521}\\
+        \hline
+        $\gamma = 1.0$ ($\alpha = 0.1$, $\epsilon = 0.0001$) & 43.28 & 493\\
+        \hline
+    \end{tabular}
+\end{center}
+
+The values of the hyperparameters $\epsilon = 0.0001$, $\alpha = 0.1$, and $\gamma = 0.9$ produced the best max and average scores. Intuitively, these feel relatively uncontentious - $\epsilon$ is low because the monkey cannot get a good average or max score if it does too much exploring in 100 epochs, $\alpha$ is quite low because we do not want to change our Q-table massively at every timestep, and $\gamma$ is quite high because there is little reason to discount the future heavily (points later are not much less valuable than points now). I chose to use these hyperparameters for the rest of my analysis.
+
+In order to test the difference between \texttt{stub.py} and \texttt{stub\_grav.py} using the optimal parameters, I ran the game 50 times (100 epochs each time), and calculated the following test metrics to demonstrate performance:
+\begin{center}
+    \begin{tabular}{ |c|c|c| } 
+        \hline
+        50 iterations (100 epochs per iteration) & \texttt{stub.py} & \texttt{stub\_grav.py} \\
         \hline
         Average score across all epochs in all iterations & \mathcolorbox{green}{48.60} & 37.37\\
         \hline
@@ -466,12 +583,43 @@ In order to test the difference between \texttt{stub.py} and \texttt{stub\_grav.
         Variance of max score in each iteration & 86258.12 & \mathcolorbox{green}{82978.98}\\
         \hline
     \end{tabular}
+    \\\bigskip PTO!
 \end{center}
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.5\linewidth]{HW6/plots/prob}
-    \caption{\texttt{$\gamma$ = 0.6}}
+
+\begin{figure}[H]
+    \begin{subfigure}
+        \centering
+        \includegraphics[width=0.5\linewidth]{HW6/plots/prob3_max_scores.png}
+        \captionsetup{labelformat=empty}
+        \caption{Max scores in each of 50 iterations}
+    \end{subfigure}%
+    ~
+    \begin{subfigure}
+        \centering
+        \includegraphics[width=0.5\linewidth]{HW6/plots/prob3_av_scores.png}
+        \captionsetup{labelformat=empty}
+        \caption{Average scores in each of 50 iterations}
+    \end{subfigure}
 \end{figure}
+
+A first glance at the graphs above suggests that there is very little difference between the non-gravity-inferring monkey and gravity-inferring monkey. This perhaps suggests that 100 epochs simply is not enough to update the gravity-inferring monkey's Q-table to an extent where it improves the monkey's performance. However, the tabulated data reveals an interesting result: while the non-gravity-inferring monkey got a higher score on average, a higher overall max score, and a higher average max score across all iterations, the gravity-inferring-monkey had less variation (lower variance) in its max score across all iterations.
+
+Another clear finding from the graphs is that both the non-gravity-inferring monkey and gravity-inferring monkey perform very variably, sometimes producing max scores over 1000, and sometimes failing to get a score above 10. After looking into the results from 1 iteration of the game (with 100 epochs), I discovered that the monkey consistently performs significantly worse in low gravity epochs than high gravity epochs:
+\begin{center}
+    \begin{tabular}{ |c|c|c| } 
+        \hline
+        1 iteration (100 epochs) & \texttt{stub.py} & \texttt{stub\_grav.py} \\
+        \hline
+        Average score across all low gravity epochs & 0.52 & 0.27\\
+        \hline
+        Average score across all high gravity epochs & 65.79 & 58.58\\
+        \hline
+    \end{tabular}
+\end{center}
+I assume this may be sue to there being significantly less variance in the y-values in low gravity games, so the monkey explores far fewer states. Consistent with the above findings, the non-gravity-inferring monkey performs a little better on average than the gravity-inferring monkey across epochs.\\
+
+\textit{\textbf{Conclusion}}:
+I would probably choose to use the non-gravity-inferring monkey for the SwingyMonkey game in its current form, since it produces better scores on average. However, in another game format, whereby you were penalized for getting low scores, I would choose to use the gravity-inferring monkey, that more reliably produces scores close to its average max score.
 
 \newpage
 \newpage
